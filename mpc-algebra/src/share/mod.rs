@@ -11,6 +11,8 @@ pub mod spdz;
 pub use spdz::*;
 pub mod gsz20;
 pub use gsz20::*;
+pub mod rss3;
+pub use rss3::*;
 
 use std::marker::PhantomData;
 use derivative::Derivative;

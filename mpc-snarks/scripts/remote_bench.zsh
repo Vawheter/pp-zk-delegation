@@ -17,7 +17,7 @@ LABEL="timed section"
 
 
 function usage {
-  echo "Usage: $0 {groth16,marlin,plonk} {hbc,spdz,gsz,local,ark-local} N_SQUARINGS HOSTSFILE PARTY_ID" >&2
+  echo "Usage: $0 {groth16,marlin,plonk} {hbc,spdz,gsz,rss3,local,ark-local} N_SQUARINGS HOSTSFILE PARTY_ID" >&2
   exit 1
 }
 
@@ -35,14 +35,14 @@ case $proof in
 esac
 
 case $infra in
-    hbc|spdz|gsz|local|ark-local)
+    hbc|spdz|gsz|rss3|local|ark-local)
         ;;
     *)
         usage
 esac
 
 case $infra in
-    hbc|spdz|gsz)
+    hbc|spdz|gsz|rss3)
         $BIN -p $proof -c squaring --computation-size $size mpc --hosts $hostsfile --party $partyid --alg $infra | rg "End: *$LABEL" | rg -o '[0-9][0-9.]*.s'
     ;;
     *)

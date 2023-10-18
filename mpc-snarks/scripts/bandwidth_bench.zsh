@@ -17,7 +17,7 @@ LABEL="timed section"
 
 
 function usage {
-  echo "Usage: $0 {groth16,marlin,plonk} {hbc,spdz,gsz,local,ark-local} N_SQUARINGS KB_PER_SEC" >&2
+  echo "Usage: $0 {groth16,marlin,plonk} {hbc,spdz,gsz,rss3,local,ark-local} N_SQUARINGS KB_PER_SEC" >&2
   exit 1
 }
 
@@ -33,7 +33,7 @@ case $proof in
 esac
 
 case $alg in
-    hbc|spdz|gsz|local|ark-local)
+    hbc|spdz|gsz|rss3|local|ark-local)
         ;;
     *)
         usage
@@ -42,7 +42,7 @@ esac
 mb_s=$(($kb_s*1.0/1000))
 
 case $alg in
-    hbc|spdz|gsz)
+    hbc|spdz|gsz|rss3)
         PROCS=()
         yes $mb_s | mm-rate-to-events | head -n 10000 > mm_trace
         $BIN -p $proof -c squaring --computation-size $size mpc --hosts data/mahimahi_out --party 0 --alg $alg | rg "End: *$LABEL" | rg -o '[0-9][0-9.]*.s' &

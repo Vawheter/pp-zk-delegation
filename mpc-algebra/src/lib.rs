@@ -61,3 +61,20 @@ pub mod honest_majority {
     // pub type MpcG2Prep<E> = pairing::MpcG2Prep<E, GszPairingShare<E>>;
     // pub type MpcPairingEngine<E> = pairing::MpcPairingEngine<E, GszPairingShare<E>>;
 }
+
+pub mod honest_majority_rss3 {
+    use super::{
+        share::rss3::*,
+        share::msm::NaiveMsm,
+        wire::{field, group, pairing},
+    };
+    pub type MpcField<F> = field::MpcField<F, RSS3FieldShare<F>>;
+    pub type MpcGroup<G> = group::MpcGroup<G, RSS3GroupShare<G, NaiveMsm<G>>>;
+    pub type MpcG1Affine<E> = pairing::MpcG1Affine<E, RSS3PairingShare<E>>;
+    pub type MpcG2Affine<E> = pairing::MpcG2Affine<E, RSS3PairingShare<E>>;
+    pub type MpcG1Projective<E> = pairing::MpcG1Projective<E, RSS3PairingShare<E>>;
+    pub type MpcG2Projective<E> = pairing::MpcG2Projective<E, RSS3PairingShare<E>>;
+    pub type MpcG1Prep<E> = pairing::MpcG1Prep<E, RSS3PairingShare<E>>;
+    pub type MpcG2Prep<E> = pairing::MpcG2Prep<E, RSS3PairingShare<E>>;
+    pub type MpcPairingEngine<E> = pairing::MpcPairingEngine<E, RSS3PairingShare<E>>;
+}

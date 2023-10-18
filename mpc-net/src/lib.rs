@@ -57,6 +57,8 @@ pub trait MpcNet {
     /// Provide bytes iff you're the king!
     fn recv_bytes_from_king(bytes: Option<Vec<Vec<u8>>>) -> Vec<u8>;
 
+    fn pass_around_bytes(bytes: &[u8]) -> Vec<u8>;
+
     /// Everyone sends bytes to the king, who recieves those bytes, runs a computation on them, and
     /// redistributes the resulting bytes.
     ///

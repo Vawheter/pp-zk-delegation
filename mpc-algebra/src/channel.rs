@@ -21,6 +21,15 @@ pub trait MpcSerNet: MpcNet {
     }
 
     #[inline]
+    fn pass_around<T: CanonicalDeserialize + CanonicalSerialize>(out: &T) -> T {
+        let mut bytes_out = Vec::new();
+        out.serialize(&mut bytes_out).unwrap();
+        let bytes_in = Self::pass_around_bytes(&bytes_out);
+        T::deserialize(&bytes_in[..]).unwrap()
+    }
+
+
+    #[inline]
     fn send_to_king<T: CanonicalDeserialize + CanonicalSerialize>(out: &T) -> Option<Vec<T>> {
         let mut bytes_out = Vec::new();
         out.serialize(&mut bytes_out).unwrap();

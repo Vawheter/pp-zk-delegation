@@ -388,6 +388,10 @@ impl ShareInfo {
                     computation_size,
                     timed_label,
                 ),
+                MpcAlg::Rss3 => B::mpc::<E, mpc_algebra::share::rss3::RSS3PairingShare<E>>(
+                    computation_size,
+                    timed_label,
+                ),
             },
         }
     }

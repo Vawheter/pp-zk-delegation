@@ -245,6 +245,31 @@ impl Connections {
             p.stream = None;
         }
     }
+    fn pass_around(&mut self, bytes_out: &[u8]) -> Vec<u8> { 
+        let timer = start_timer!(|| format!("Pass around {}", bytes_out.len()));
+        let m = bytes_out.len();
+        let own_id = self.id;
+        self.stats.bytes_sent += m;
+        self.stats.bytes_recv += m;
+        let n = self.peers.len();
+        let mut bytes_in = vec![0u8; m];
+        self.peers
+            .iter_mut()
+            .enumerate()
+            .for_each(|(id, peer)| {
+                if id == (own_id + 1) % n {
+                    let stream = peer.stream.as_mut().unwrap();
+                    stream.read_exact(&mut bytes_in[..]).unwrap();
+                    stream.write_all(bytes_out).unwrap();
+                } else if id == (own_id - 1) % n {
+                    let stream = peer.stream.as_mut().unwrap();
+                    stream.write_all(bytes_out).unwrap();
+                    stream.read_exact(&mut bytes_in[..]).unwrap();
+                };
+            });
+        end_timer!(timer);
+        bytes_in
+    }
 }
 
 pub struct MpcMultiNet;
@@ -304,5 +329,10 @@ impl MpcNet for MpcMultiNet {
     #[inline]
     fn recv_bytes_from_king(bytes: Option<Vec<Vec<u8>>>) -> Vec<u8> {
         get_ch!().recv_from_king(bytes)
+    }
+
+    #[inline]
+    fn pass_around_bytes(bytes: &[u8]) -> Vec<u8> { 
+        get_ch!().pass_around(bytes)
     }
 }

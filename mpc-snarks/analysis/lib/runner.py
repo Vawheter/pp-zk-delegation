@@ -75,6 +75,7 @@ class Cmd(NamedTuple):
 LOCAL = "local"
 GSZ = "gsz"
 SPDZ = "spdz"
+RSS3 = "rss3"
 
 GROTH = "groth16"
 PLONK = "plonk"

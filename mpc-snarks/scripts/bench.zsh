@@ -20,7 +20,7 @@ LABEL="timed section"
 
 
 function usage {
-  echo "Usage: $0 {groth16,marlin,plonk} {hbc,spdz,gsz,local,ark-local} N_SQUARINGS N_PARTIES" >&2
+  echo "Usage: $0 {groth16,marlin,plonk} {hbc,spdz,gsz,rss3,local,ark-local} N_SQUARINGS N_PARTIES" >&2
   exit 1
 }
 
@@ -36,7 +36,7 @@ case $proof in
 esac
 
 case $infra in
-    hbc|spdz|gsz|local|ark-local)
+    hbc|spdz|gsz|rss3|local|ark-local)
         ;;
     *)
         usage
@@ -45,7 +45,7 @@ esac
 sleep 1
 
 case $infra in
-    hbc|spdz|gsz)
+    hbc|spdz|gsz|rss3)
         PROCS=()
         for i in $(seq 0 $(($n_parties - 1)))
         do

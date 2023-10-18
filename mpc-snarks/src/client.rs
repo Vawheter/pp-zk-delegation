@@ -18,6 +18,7 @@ use std::path::PathBuf;
 use mpc_algebra::com::ComField;
 use mpc_algebra::honest_but_curious as hbc;
 use mpc_algebra::malicious_majority as mm;
+use mpc_algebra::honest_majority_rss3 as hmrss3;
 use mpc_algebra::*;
 use mpc_trait::MpcWire;
 use mpc_net::{MpcNet, MpcMultiNet};
