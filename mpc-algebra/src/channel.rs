@@ -21,10 +21,10 @@ pub trait MpcSerNet: MpcNet {
     }
 
     #[inline]
-    fn pass_around<T: CanonicalDeserialize + CanonicalSerialize>(out: &T) -> T {
+    fn pass_to_next<T: CanonicalDeserialize + CanonicalSerialize>(out: &T) -> T {
         let mut bytes_out = Vec::new();
         out.serialize(&mut bytes_out).unwrap();
-        let bytes_in = Self::pass_around_bytes(&bytes_out);
+        let bytes_in = Self::pass_to_next_bytes(&bytes_out);
         T::deserialize(&bytes_in[..]).unwrap()
     }
 

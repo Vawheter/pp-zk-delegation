@@ -318,7 +318,7 @@ impl MpcNet for MpcTwoNet {
     }
 
     #[inline]
-    fn pass_around_bytes(bytes: &[u8]) -> Vec<u8> {
+    fn pass_to_next_bytes(bytes: &[u8]) -> Vec<u8> {
         get_ch!().exchange_bytes(bytes).unwrap()
     }
 }

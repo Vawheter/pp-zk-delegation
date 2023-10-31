@@ -44,6 +44,10 @@ name = "client"
 path = "src/client.rs"
 
 [[bin]]
+name = "client_rss3"
+path = "src/client_rss3.rs"
+
+[[bin]]
 name = "proof"
 path = "src/proof.rs"
 

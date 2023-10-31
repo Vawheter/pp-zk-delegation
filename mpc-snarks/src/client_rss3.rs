@@ -16,8 +16,7 @@ use std::borrow::Cow;
 use std::path::PathBuf;
 
 use mpc_algebra::com::ComField;
-use mpc_algebra::honest_but_curious as hbc;
-use mpc_algebra::malicious_majority as mm;
+use mpc_algebra::honest_majority_rss3 as hm_rss3;
 use mpc_algebra::*;
 use mpc_trait::MpcWire;
 use mpc_net::{MpcNet, MpcMultiNet};
@@ -74,7 +73,7 @@ enum ComputationDomain {
 }
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "client", about = "An example MPC")]
+#[structopt(name = "client_rss3", about = "An example MPC using RSS3")]
 struct Opt {
     /// Activate debug mode
     // short and long flags (-d, --debug) will be deduced from the field's name
@@ -99,7 +98,7 @@ struct Opt {
 
     /// Computation to perform
     #[structopt(long)]
-    spdz: bool,
+    rss3: bool,
 
     /// Input a
     #[structopt()]
@@ -154,7 +153,7 @@ fn pairing_engine_test<E: PairingEngine>(
 
 fn powers_to_mpc<'a>(
     p: ark_poly_commit::kzg10::Powers<'a, ark_bls12_377::Bls12_377>,
-) -> ark_poly_commit::kzg10::Powers<'a, hbc::MpcPairingEngine<ark_bls12_377::Bls12_377>> {
+) -> ark_poly_commit::kzg10::Powers<'a, hm_rss3::MpcPairingEngine<ark_bls12_377::Bls12_377>> {
     ark_poly_commit::kzg10::Powers {
         powers_of_g: Cow::Owned(
             p.powers_of_g
@@ -173,12 +172,12 @@ fn powers_to_mpc<'a>(
     }
 }
 fn commit_from_mpc<'a>(
-    p: ark_poly_commit::kzg10::Commitment<hbc::MpcPairingEngine<ark_bls12_377::Bls12_377>>,
+    p: ark_poly_commit::kzg10::Commitment<hm_rss3::MpcPairingEngine<ark_bls12_377::Bls12_377>>,
 ) -> ark_poly_commit::kzg10::Commitment<ark_bls12_377::Bls12_377> {
     ark_poly_commit::kzg10::Commitment(p.0.reveal())
 }
 fn pf_from_mpc<'a>(
-    pf: ark_poly_commit::kzg10::Proof<hbc::MpcPairingEngine<ark_bls12_377::Bls12_377>>,
+    pf: ark_poly_commit::kzg10::Proof<hm_rss3::MpcPairingEngine<ark_bls12_377::Bls12_377>>,
 ) -> ark_poly_commit::kzg10::Proof<ark_bls12_377::Bls12_377> {
     ark_poly_commit::kzg10::Proof {
         w: pf.w.reveal(),
@@ -851,10 +850,10 @@ impl Computation {
 }
 
 type E = ark_bls12_377::Bls12_377;
-type ME = hbc::MpcPairingEngine<E>;
-type MFr = hbc::MpcField<Fr>;
-type MG1 = hbc::MpcG1Projective<E>;
-type MG2 = hbc::MpcG2Projective<E>;
+type ME = hm_rss3::MpcPairingEngine<E>;
+type MFr = hm_rss3::MpcField<Fr>;
+type MG1 = hm_rss3::MpcG1Projective<E>;
+type MG2 = hm_rss3::MpcG2Projective<E>;
 type P = ark_poly::univariate::DensePolynomial<Fr>;
 type MP = ark_poly::univariate::DensePolynomial<MFr>;
 trait Pc = ark_poly_commit::PolynomialCommitment<Fr, DensePolynomial<Fr>>;
@@ -874,11 +873,11 @@ fn main() -> () {
     let domain = opt.domain();
     MpcMultiNet::init_from_file(opt.hosts.to_str().unwrap(), opt.party as usize);
     debug!("Start");
-    if opt.spdz {
+    if opt.rss3 {
         let inputs = opt
             .args
             .iter()
-            .map(|i| mm::MpcField::<Fr>::from_add_shared(Fr::from(*i)))
+            .map(|i| hm_rss3::MpcField::<Fr>::from_public(Fr::from(*i)))
             .collect::<Vec<_>>();
         println!("Inputs:");
         for (i, v) in inputs.iter().enumerate() {
@@ -894,8 +893,8 @@ fn main() -> () {
                 }
             }
             ComputationDomain::Group | ComputationDomain::G1 => {
-                let generator = mm::MpcGroup::<ark_bls12_377::G1Projective>::from_public(ark_bls12_377::G1Projective::prime_subgroup_generator());
-                opt.computation.run_group::<mm::MpcGroup<ark_bls12_377::G1Projective>>(inputs, generator);
+                let generator = hm_rss3::MpcGroup::<ark_bls12_377::G1Projective>::from_public(ark_bls12_377::G1Projective::prime_subgroup_generator());
+                opt.computation.run_group::<hm_rss3::MpcGroup<ark_bls12_377::G1Projective>>(inputs, generator);
             }
             d => panic!("Bad domain: {:?}", d),
         }
@@ -903,7 +902,7 @@ fn main() -> () {
         let inputs = opt
             .args
             .iter()
-            .map(|i| MFr::from_add_shared(Fr::from(*i)))
+            .map(|i| MFr::from_public(Fr::from(*i)))
             .collect::<Vec<MFr>>();
         println!("Inputs:");
         for (i, v) in inputs.iter().enumerate() {
@@ -937,7 +936,7 @@ fn main() -> () {
             ComputationDomain::Pairing => {
                 let mut outputs = opt
                     .computation
-                    .run_pairing::<hbc::MpcPairingEngine<ark_bls12_377::Bls12_377>>(inputs);
+                    .run_pairing::<hm_rss3::MpcPairingEngine<ark_bls12_377::Bls12_377>>(inputs);
                 outputs.iter_mut().for_each(|c| c.publicize());
                 println!("Public Outputs:");
                 for (i, v) in outputs.iter().enumerate() {

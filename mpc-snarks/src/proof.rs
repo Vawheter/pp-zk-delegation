@@ -403,6 +403,7 @@ arg_enum! {
         Spdz,
         Hbc,
         Gsz,
+        Rss3,
     }
 }
 
