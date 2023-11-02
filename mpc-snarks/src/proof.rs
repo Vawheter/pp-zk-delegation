@@ -124,6 +124,12 @@ mod squarings {
                     E::Fr,
                     <MpcPairingEngine<E, S> as PairingEngine>::Fr,
                 >(a, n);
+                
+                // circ_data.chain.clone().into_iter().for_each(|v| {
+                //     debug!("v: {:?}", Some(v));
+                // });
+                // debug!("c.chain.last().unwrap().unwrap(): {}", circ_data.chain.last().unwrap().unwrap());
+                
                 let public_inputs = vec![circ_data.chain.last().unwrap().unwrap().reveal()];
                 end_timer!(computation_timer);
                 MpcMultiNet::reset_stats();
@@ -310,6 +316,9 @@ mod squarings {
             .collect();
         let rng = &mut test_rng();
         let chain_shares = MFr::king_share_batch(raw_chain, rng);
+        // chain_shares.clone().into_iter().for_each(|v| {
+        //     debug!("v: {}", v);
+        // });
         RepeatedSquaringCircuit {
             chain: chain_shares.into_iter().map(Some).collect(),
         }
@@ -489,7 +498,12 @@ impl Opt {}
 
 fn main() {
     let opt = Opt::from_args();
-    env_logger::init();
+    // env_logger::init();
+    // env_logger::builder()
+    //         .filter_level(log::LevelFilter::Debug)
+    //         .init();
+    env_logger::builder().format_timestamp(None).init();
+
     match opt.proof_system {
         ProofSystem::Groth16 => opt.field.run::<ark_bls12_377::Bls12_377, _>(
             opt.computation,

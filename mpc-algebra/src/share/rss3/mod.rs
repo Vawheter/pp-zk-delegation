@@ -31,6 +31,8 @@ use super::BeaverSource;
 use crate::msm::*;
 use crate::Reveal;
 
+use log::debug;
+
 #[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct RSS3FieldShare<T> {
     pub val0: T,
@@ -108,6 +110,7 @@ impl<F: Field> Reveal for RSS3FieldShare<F> {
             res0 += shares_vec[party_id][0];
             res1 += shares_vec[party_id][1];
         }
+        // debug!("res0: {}, res1: {}", res0, res1);
 
         assert_eq!(res0, res1);
         res0
@@ -139,10 +142,9 @@ impl<F: Field> Reveal for RSS3FieldShare<F> {
                 let r0 = F::rand(rng);
                 let r1 = F::rand(rng);
                 let r2 = f - r0 - r1;
-                let mut shares: Vec<Vec<F>> = vec![];
-                shares.push(vec![r0, r2]);
-                shares.push(vec![r1, r0]);
-                shares.push(vec![r2, r1]);
+                let shares = vec![vec![r0, r2],
+                                  vec![r1, r0],
+                                  vec![r2, r1]];
                 Some(shares)
             } else {
                 None 
@@ -154,25 +156,25 @@ impl<F: Field> Reveal for RSS3FieldShare<F> {
     }
 
     fn king_share_batch<R: Rng>(f: Vec<Self::Base>, rng: &mut R) -> Vec<Self> {
-        let my_shares_batch = Net::recv_from_king(
+        let my_share_batch = Net::recv_from_king(
             if Net::am_king() {
-                let shares_batch = 
-                    f.into_iter()
-                    .map(|x| {
+                let mut share_batches0 = vec![];
+                let mut share_batches1 = vec![];
+                let mut share_batches2 = vec![];
+                f.into_iter()
+                    .for_each(|x| {
                         let r0 = F::rand(rng);
                         let r1 = F::rand(rng);
                         let r2 = x - r0 - r1;
-                        let mut shares: Vec<Vec<Self::Base>> = vec![];
-                        shares.push(vec![r0, r2]);
-                        shares.push(vec![r1, r0]);
-                        shares.push(vec![r2, r1]);
-                        shares
-                    }).collect();
-                Some(shares_batch)
+                        share_batches0.push(vec![r0, r2]);
+                        share_batches1.push(vec![r1, r0]);
+                        share_batches2.push(vec![r2, r1]);
+                    });
+                Some(vec![share_batches0, share_batches1, share_batches2])
             } else {
                 None
         });
-        my_shares_batch.into_iter().map(|v| {
+        my_share_batch.into_iter().map(|v| {
             Self {
                 val0: v[0],
                 val1: v[1],
@@ -315,10 +317,9 @@ impl<G: Group, M> Reveal for RSS3GroupShare<G, M> {
                 let r0 = G::rand(rng);
                 let r1 = G::rand(rng);
                 let r2 = f - r0 - r1;
-                let mut shares: Vec<Vec<G>> = vec![];
-                shares.push(vec![r0, r2]);
-                shares.push(vec![r1, r0]);
-                shares.push(vec![r2, r1]);
+                let shares = vec![vec![r0, r2],
+                                  vec![r1, r0],
+                                  vec![r2, r1]];
                 Some(shares)
             } else {
                 None 
@@ -331,25 +332,25 @@ impl<G: Group, M> Reveal for RSS3GroupShare<G, M> {
     }
 
     fn king_share_batch<R: Rng>(f: Vec<Self::Base>, rng: &mut R) -> Vec<Self> {
-        let my_shares_batch = Net::recv_from_king(
+        let my_share_batch = Net::recv_from_king(
             if Net::am_king() {
-                let shares_batch = 
-                    f.into_iter()
-                    .map(|x| {
+                let mut share_batches0 = vec![];
+                let mut share_batches1 = vec![];
+                let mut share_batches2 = vec![];
+                f.into_iter()
+                    .for_each(|x| {
                         let r0 = G::rand(rng);
                         let r1 = G::rand(rng);
                         let r2 = x - r0 - r1;
-                        let mut shares: Vec<Vec<Self::Base>> = vec![];
-                        shares.push(vec![r0, r2]);
-                        shares.push(vec![r1, r0]);
-                        shares.push(vec![r2, r1]);
-                        shares
-                    }).collect();
-                Some(shares_batch)
+                        share_batches0.push(vec![r0, r2]);
+                        share_batches1.push(vec![r1, r0]);
+                        share_batches2.push(vec![r2, r1]);
+                    });
+                Some(vec![share_batches0, share_batches1, share_batches2])
             } else {
                 None
         });
-        my_shares_batch.into_iter().map(|v| {
+        my_share_batch.into_iter().map(|v| {
             Self {
                 val0: v[0],
                 val1: v[1],
@@ -422,7 +423,7 @@ impl<G: Group, M: Msm<G, G::ScalarField>> GroupShare<G> for RSS3GroupShare<G, M>
         _source: &mut S,
     ) -> Self {
         let mut tmp0 = self.val0;
-        tmp0 *= (other.val0 + other.val1);
+        tmp0 *= other.val0 + other.val1;
         let mut tmp1 = self.val1;
         tmp1 *= other.val0;
         let z0 = tmp0 + tmp1;

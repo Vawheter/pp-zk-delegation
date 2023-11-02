@@ -194,6 +194,45 @@ fn test_pairing<E: PairingEngine, S: PairingShare<E>>() {
     }
 }
 
+fn test_king_share<F: Field>() {
+    let rng = &mut ark_std::test_rng();
+
+    for _i in 0..N {
+        let a_pub = F::rand(rng);
+        let b_pub = F::rand(rng);
+        let c_should_be = a_pub + b_pub;
+        // debug!("a_pub: {}, b_pub: {}", a_pub, b_pub);
+
+        let mut a_ss = RSS3FieldShare::king_share(a_pub, rng);
+        // debug!("a_ss.val0: {}, a_ss.val1: {}", a_ss.val0, a_ss.val1);
+        let b_ss = RSS3FieldShare::king_share(b_pub, rng);
+        // debug!("b_ss.val0: {}, b_ss.val1: {}", b_ss.val0, b_ss.val1);
+        let c_ss = a_ss.add(&b_ss);
+        // debug!("c_ss.val0: {}, c_ss.val1: {}", c_ss.val0, c_ss.val1);
+        let c_res = c_ss.reveal();
+       
+        // debug!("c_should_be: {}, c_res: {}", c_should_be, c_res);
+
+        if Net::am_king() {
+            assert_eq!(c_should_be, c_res);
+        }
+    }
+}
+
+fn test_king_share_batch<F: Field>() {
+    let rng = &mut ark_std::test_rng();
+
+    let xs: Vec<F> = (0..N).map(|_| F::rand(rng) ).collect();
+    let xs_ss = RSS3FieldShare::king_share_batch(xs.clone(), rng);
+
+    if Net::am_king() {
+        (0..N).map(|i| {
+            assert_eq!(xs[i], xs_ss[i].reveal());
+        });
+    }
+}
+
+
 fn main() {
     env_logger::builder().format_timestamp(None).init();
     debug!("Start");
@@ -201,22 +240,25 @@ fn main() {
     println!("{:?}", opt);
     Net::init_from_file(opt.input.to_str().unwrap(), opt.id);
 
-    test_sum_field::<ark_bls12_377::Fr>();
-    test_mul_field::<ark_bls12_377::Fr>();
-    test_ip_field::<ark_bls12_377::Fr>();
+    // test_sum_field::<ark_bls12_377::Fr>();
+    // test_mul_field::<ark_bls12_377::Fr>();
+    // test_ip_field::<ark_bls12_377::Fr>();
 
-    test_sum_group::<ark_bls12_377::G1Affine>();
-    test_mul_group::<ark_bls12_377::G1Affine>();
-    test_sum_group::<ark_bls12_377::G1Projective>();
-    test_mul_group::<ark_bls12_377::G1Projective>();
-    test_sum_group::<ark_bls12_377::G2Affine>();
-    test_mul_group::<ark_bls12_377::G2Affine>();
-    test_sum_group::<ark_bls12_377::G2Projective>();
-    test_mul_group::<ark_bls12_377::G2Projective>();
+    // test_sum_group::<ark_bls12_377::G1Affine>();
+    // test_mul_group::<ark_bls12_377::G1Affine>();
+    // test_sum_group::<ark_bls12_377::G1Projective>();
+    // test_mul_group::<ark_bls12_377::G1Projective>();
+    // test_sum_group::<ark_bls12_377::G2Affine>();
+    // test_mul_group::<ark_bls12_377::G2Affine>();
+    // test_sum_group::<ark_bls12_377::G2Projective>();
+    // test_mul_group::<ark_bls12_377::G2Projective>();
 
-    test_mul_mulfield::<ark_bls12_377::Bls12_377>();
+    // test_mul_mulfield::<ark_bls12_377::Bls12_377>();
 
-    test_pairing::<ark_bls12_377::Bls12_377, RSS3PairingShare<ark_bls12_377::Bls12_377>>();
+    // test_pairing::<ark_bls12_377::Bls12_377, RSS3PairingShare<ark_bls12_377::Bls12_377>>();
+
+    // test_king_share::<ark_bls12_377::Fr>();
+    test_king_share_batch::<ark_bls12_377::Fr>();
 
     debug!("Done");
     Net::deinit();

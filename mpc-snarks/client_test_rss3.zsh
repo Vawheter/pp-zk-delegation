@@ -3,21 +3,41 @@ set -xe
 trap "exit" INT TERM
 trap "kill 0" EXIT
 
-cargo +nightly build --bin client_rss3 --release
+cargo +nightly build --bin client_rss3
 
-BIN=./target/release/client_rss3
+BIN=./target/debug/client_rss3
 
-$BIN --rss3 --hosts data/3 -d sum 0 9 --party 0 & ; pid0=$!
-$BIN --rss3 --hosts data/3 -d sum 1 0 --party 1 & ; pid1=$!
-$BIN --rss3 --hosts data/3 -d sum 3 3 --party 2 & ; pid2=$!
+# groth16
+RUST_BACKTRACE=1 RUST_LOG=debug $BIN --hosts data/3 groth16 --party 0 & ; pid0=$!
+$BIN --hosts data/3 groth16 --party 1 & ; pid1=$!
+$BIN --hosts data/3 groth16 --party 2 & ; pid2=$!
+wait $pid0 $pid1 $pid2
+
+# plonk
+RUST_BACKTRACE=1 RUST_LOG=debug $BIN --hosts data/3 plonk --party 0 & ; pid0=$!
+$BIN --hosts data/3 plonk --party 1 & ; pid1=$!
+$BIN --hosts data/3 plonk --party 2 & ; pid2=$!
 
 wait $pid0 $pid1 $pid2
 
-$BIN --rss3 --hosts data/3 -d product 4 2 --party 0 & ; pid0=$!
-$BIN --rss3 --hosts data/3 -d product 7 1 --party 1 & ; pid1=$!
-$BIN --rss3 --hosts data/3 -d product 3 2 --party 2 & ; pid2=$!
+# marlin
+RUST_BACKTRACE=1 RUST_LOG=debug $BIN --hosts data/3 marlin --party 0 & ; pid0=$!
+$BIN --hosts data/3 marlin --party 1 & ; pid1=$!
+$BIN --hosts data/3 marlin --party 2 & ; pid2=$!
 
 wait $pid0 $pid1 $pid2
+
+# $BIN --rss3 --hosts data/3 -d sum 0 9 --party 0 & ; pid0=$!
+# $BIN --rss3 --hosts data/3 -d sum 1 0 --party 1 & ; pid1=$!
+# $BIN --rss3 --hosts data/3 -d sum 3 3 --party 2 & ; pid2=$!
+
+# wait $pid0 $pid1 $pid2
+
+# $BIN --rss3 --hosts data/3 -d product 4 2 --party 0 & ; pid0=$!
+# $BIN --rss3 --hosts data/3 -d product 7 1 --party 1 & ; pid1=$!
+# $BIN --rss3 --hosts data/3 -d product 3 2 --party 2 & ; pid2=$!
+
+# wait $pid0 $pid1 $pid2
 
 # $BIN --rss3 --hosts data/3 -d pproduct 100 200 --party 0 & ; pid0=$!
 # $BIN --rss3 --hosts data/3 -d pproduct 40 50 --party 1 & ; pid1=$!
@@ -146,18 +166,6 @@ wait $pid0 $pid1 $pid2
 # # marlin poly commit (zk, batch verify)
 # $BIN --hosts data/3 marlinpcbatch 1 2 0 4 4 0 --party 0 & ; pid0=$!
 # $BIN --hosts data/3 marlinpcbatch 3 2 0 0 1 0 --party 1 & ; pid1=$!
-
-# wait $pid0 $pid1
-
-# # plonk
-# $BIN --hosts data/3 plonk --party 0 & ; pid0=$!
-# $BIN --hosts data/3 plonk --party 1 & ; pid1=$!
-
-# wait $pid0 $pid1
-
-# # marlin
-# $BIN --hosts data/3 marlin --party 0 & ; pid0=$!
-# $BIN --hosts data/3 marlin --party 1 & ; pid1=$!
 
 # wait $pid0 $pid1
 
