@@ -132,8 +132,7 @@ impl<F: Field> Reveal for RSS3FieldShare<F> {
     }
 
     fn unwrap_as_public(self) -> F {
-        self.val0
-        // unimplemented!()
+        unimplemented!()
     }
 
     fn king_share<R: Rng>(f: Self::Base, rng: &mut R) -> Self {
@@ -192,6 +191,29 @@ impl<F: Field> FieldShare<F> for RSS3FieldShare<F> {
             val0: z0,
             val1: z1,
         }
+    }
+
+    fn batch_mul<S: BeaverSource<Self, Self, Self>>(
+        xs: Vec<Self>,
+        ys: Vec<Self>,
+        _source: &mut S,
+    ) -> Vec<Self> {
+        let z0s: Vec<F> = xs.into_iter()
+                            .zip(ys.into_iter())
+                            .map(|(x, y)| {
+                                x.val0 * (y.val0 + y.val1) + y.val0 * x.val1
+                            }).collect();
+
+        let z1s = Net::pass_to_next(&z0s);
+
+        z0s.into_iter()
+            .zip(z1s.into_iter())
+            .map(|(z0, z1)| {
+                Self {
+                    val0: z0,
+                    val1: z1,
+                }
+            }).collect()
     }
     
     fn batch_open(selfs: impl IntoIterator<Item = Self>) -> Vec<F> { // Rewrite the function
@@ -287,9 +309,13 @@ impl<G: Group, M> Reveal for RSS3GroupShare<G, M> {
         let mut res0 = G::zero();
         let mut res1 = G::zero();
         for party_id in 0..3 {
+            debug!("\nss[{}][0]: {},\n ss[{}][1]: {}\n", party_id, shares_vec[party_id][0], party_id, shares_vec[party_id][1]);
             res0 += shares_vec[party_id][0];
             res1 += shares_vec[party_id][1];
         }
+        debug!("res0: {}, res1: {}", res0, res1);
+        debug!("\n");
+
         assert_eq!(res0, res1);
         res0
     }
@@ -307,8 +333,20 @@ impl<G: Group, M> Reveal for RSS3GroupShare<G, M> {
         unimplemented!()
     }
 
+    fn unwrap_as_public_vec(self) -> Vec<G> {
+        vec![self.val0, self.val1]
+    }
+
+    fn from_add_shared_vec(vals: Vec<G>) -> Self {
+        Self {
+            val0: vals[0],
+            val1: vals[1],
+            _phants: PhantomData::default(),
+        }
+    }
+
     fn unwrap_as_public(self) -> G {
-        self.val0
+        unimplemented!()
     }
 
     fn king_share<R: Rng>(f: Self::Base, rng: &mut R) -> Self {
@@ -363,6 +401,14 @@ impl<G: Group, M> Reveal for RSS3GroupShare<G, M> {
 impl<G: Group, M: Msm<G, G::ScalarField>> GroupShare<G> for RSS3GroupShare<G, M> {
     type FieldShare = RSS3FieldShare<G::ScalarField>;
     
+    fn map_homo<G2: Group, S2: GroupShare<G2>, Fun: Fn(G) -> G2>(self, f: Fun) -> S2 {
+        let vals = self.unwrap_as_public_vec()
+                        .into_iter()
+                        .map(|x| f(x) )
+                        .collect();
+        S2::from_add_shared_vec(vals)
+    }
+
     fn batch_open(selfs: impl IntoIterator<Item = Self>) -> Vec<G> {
         let self_vec: Vec<Vec<G>> = selfs.into_iter().map(|s| vec![s.val0, s.val1] ).collect();
         let all_vals = Net::broadcast(&self_vec);
@@ -638,7 +684,7 @@ impl<F: Field> Reveal for MulFieldShare<F> {
     }
 
     fn unwrap_as_public(self) -> F {
-        self.val0
+        unimplemented!()
     }
 }
 
@@ -757,11 +803,18 @@ macro_rules! groups_share {
                 mut a: Self::ProjectiveShare,
                 o: &E::$affine,
             ) -> Self::ProjectiveShare {
+                debug!("\nNet::party_id(): {}", Net::party_id());
+                // debug!("\na.val0: {}", a.val0);
+                // debug!("\na.val1: {}", a.val1);
+                debug!("a(before): {}", a);
                 match Net::party_id() {
                     0 => a.val0.add_assign_mixed(&o),
                     1 => a.val1.add_assign_mixed(&o),
                     _ => (),
                 }
+                // debug!("\na.val0: {}", a.val0);
+                // debug!("\na.val1: {}", a.val1);
+                debug!("a(after): {}", a);
                 a
             }
             fn add_pub_proj_sh_aff(_a: &E::$proj, _o: Self::AffineShare) -> Self::ProjectiveShare {

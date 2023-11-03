@@ -27,6 +27,16 @@ pub trait Reveal: Sized {
     fn unwrap_as_public(self) -> Self::Base {
         unimplemented!("No unwrap as public for {}", std::any::type_name::<Self>())
     }
+
+    
+    fn unwrap_as_public_vec(self) -> Vec<Self::Base> {
+        unimplemented!("Only for RSS")
+    }
+
+    fn from_add_shared_vec(vals: Vec<Self::Base>) -> Self {
+        unimplemented!("Only for RSS")
+    }
+
     /// Have the king share their `b` value, and send shares to all parties.
     fn king_share<R: Rng>(_b: Self::Base, _rng: &mut R) -> Self {
         unimplemented!("No king share for {}", std::any::type_name::<Self>())

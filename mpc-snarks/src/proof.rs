@@ -124,12 +124,6 @@ mod squarings {
                     E::Fr,
                     <MpcPairingEngine<E, S> as PairingEngine>::Fr,
                 >(a, n);
-                
-                // circ_data.chain.clone().into_iter().for_each(|v| {
-                //     debug!("v: {:?}", Some(v));
-                // });
-                // debug!("c.chain.last().unwrap().unwrap(): {}", circ_data.chain.last().unwrap().unwrap());
-                
                 let public_inputs = vec![circ_data.chain.last().unwrap().unwrap().reveal()];
                 end_timer!(computation_timer);
                 MpcMultiNet::reset_stats();
@@ -138,6 +132,7 @@ mod squarings {
                     let pf = create_random_proof::<MpcPairingEngine<E, S>, _, _>(circ_data, &mpc_params, rng)
                         .unwrap();
                     let reveal_timer = start_timer!(|| "reveal");
+                    debug!("proof\n: {:?}\n", pf);
                     let pf = pf.reveal();
                     end_timer!(reveal_timer);
                     pf

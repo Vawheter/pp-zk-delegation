@@ -55,7 +55,7 @@ case $infra in
             RUST_BACKTRACE=1 RUST_LOG=debug $BIN -p $proof -c squaring --computation-size $size mpc --hosts $NETWORK_CONFIG --party $i --alg $infra | rg "End: *$LABEL" | rg -o '[0-9][0-9.]*.s' &
             pid=$!
           else
-            $BIN -p $proof -c squaring --computation-size $size mpc --hosts $NETWORK_CONFIG --party $i --alg $infra > /dev/null &
+            RUST_LOG=debug $BIN -p $proof -c squaring --computation-size $size mpc --hosts $NETWORK_CONFIG --party $i --alg $infra > /dev/null &
             pid=$!
           fi
           PROCS+=($pid)

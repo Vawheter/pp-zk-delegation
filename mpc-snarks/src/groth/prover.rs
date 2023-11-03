@@ -10,7 +10,7 @@ use ark_relations::r1cs::{
 use ark_std::rand::Rng;
 use ark_std::{end_timer, start_timer, vec::Vec};
 use log::debug;
-
+use ark_std::PubUniformRand;
 // Changelog:
 // 1. Specialized to Bls12_377 (our MPC lifting machinery cannot be written fully generically b/c
 //    of Rust type system/ ark design limitations).
@@ -38,8 +38,8 @@ where
     //let r = <E as PairingEngine>::Fr::one();
     //let s = <E as PairingEngine>::Fr::one();
     let t = start_timer!(|| "zk sampling");
-    let r = <E as PairingEngine>::Fr::rand(rng);
-    let s = <E as PairingEngine>::Fr::rand(rng);
+    let r = <E as PairingEngine>::Fr::pub_rand(rng);
+    let s = <E as PairingEngine>::Fr::pub_rand(rng);
     end_timer!(t);
 
     create_proof::<E, C>(circuit, pk, r, s)
@@ -99,20 +99,29 @@ where
         cs.clone(),
     )?;
     end_timer!(witness_map_time);
+    
+    // h.into_iter()
+    //     .enumerate()
+    //     .for_each(|(i, x)| {
+    //         debug!("h[{}]: {}", i, x);
+    //     })
+    // debug!("\nh[0]: {}\n", h[0]);
+
     let prover_crypto_time = start_timer!(|| "crypto");
     let c_acc_time = start_timer!(|| "Compute C");
     let h_acc = <<E as PairingEngine>::G1Affine as AffineCurve>::multi_scalar_mul(&pk.h_query, &h);
-    debug!("h_acc: {}", h_acc);
+    debug!("\nh_acc: {}\n", h_acc);
     // Compute C
     let prover = cs.borrow().unwrap();
     let l_aux_acc = <<E as PairingEngine>::G1Affine as AffineCurve>::multi_scalar_mul(&pk.l_query, &prover.witness_assignment);
+    debug!("\nl_aux_acc: {}\n", l_aux_acc);
 
     let r_s_delta_g1 = pk
         .delta_g1
         .into_projective()
         .scalar_mul(&r)
         .scalar_mul(&s);
-    debug!("r_s_delta_g1: {}", r_s_delta_g1);
+    debug!("\nr_s_delta_g1: {}\n", r_s_delta_g1);//all the same
 
     end_timer!(c_acc_time);
 
@@ -122,18 +131,21 @@ where
 
     // Compute A
     let a_acc_time = start_timer!(|| "Compute A");
+    debug!("\npk.delta_g1: {}\n", pk.delta_g1);//wrong
     let r_g1 = pk.delta_g1.scalar_mul(r);
-    debug!("r_g1: {}", r_g1);
+    debug!("\nr_g1(after): {}\n", r_g1);//wrong
+
+    // debug!("r_g1: {}", r_g1);
     // debug!("Assignment:");
     // for (i, a) in assignment.iter().enumerate() {
     //     debug!("  a[{}]: {}", i, a);
     // }
 
     let g_a = calculate_coeff(r_g1, &pk.a_query, pk.vk.alpha_g1, &assignment);
-    debug!("g_a: {}", g_a);
+    debug!("\ng_a: {}\n", g_a);
 
     let s_g_a = g_a.scalar_mul(&s);
-    debug!("s_g_a: {}", s_g_a);
+    // debug!("s_g_a: {}", s_g_a);
     end_timer!(a_acc_time);
 
     // Compute B in G1 if needed
@@ -154,7 +166,7 @@ where
     let s_g2 = pk.vk.delta_g2.scalar_mul(s);
     let g2_b = calculate_coeff(s_g2, &pk.b_g2_query, pk.vk.beta_g2, &assignment);
     let r_g1_b = g1_b.scalar_mul(&r);
-    debug!("r_g1_b: {}", r_g1_b);
+    // debug!("g2_b: {}", g2_b);
     drop(assignment);
 
     end_timer!(b_g2_acc_time);
@@ -222,11 +234,14 @@ fn calculate_coeff<G: AffineCurve>(
     let el = query[0];
     let t = start_timer!(|| format!("MSM size {} {}", query.len() - 1, assignment.len()));
     let acc = G::multi_scalar_mul(&query[1..], assignment);
+    debug!("\nin calculate_coeff, acc: {}\n", acc);
     end_timer!(t);
     let mut res = initial;
     res.add_assign_mixed(&el);
+    debug!("\nin calculate_coeff, res1: {}\n", res);
     res += &acc;
     res.add_assign_mixed(&vk_param);
+    debug!("\nin calculate_coeff, res2: {}\n", res);
 
     res
 }

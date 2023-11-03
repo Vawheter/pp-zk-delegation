@@ -240,24 +240,24 @@ fn main() {
     println!("{:?}", opt);
     Net::init_from_file(opt.input.to_str().unwrap(), opt.id);
 
-    // test_sum_field::<ark_bls12_377::Fr>();
-    // test_mul_field::<ark_bls12_377::Fr>();
-    // test_ip_field::<ark_bls12_377::Fr>();
+    test_sum_field::<ark_bls12_377::Fr>();
+    test_mul_field::<ark_bls12_377::Fr>();
+    test_ip_field::<ark_bls12_377::Fr>();
 
-    // test_sum_group::<ark_bls12_377::G1Affine>();
-    // test_mul_group::<ark_bls12_377::G1Affine>();
-    // test_sum_group::<ark_bls12_377::G1Projective>();
-    // test_mul_group::<ark_bls12_377::G1Projective>();
-    // test_sum_group::<ark_bls12_377::G2Affine>();
-    // test_mul_group::<ark_bls12_377::G2Affine>();
-    // test_sum_group::<ark_bls12_377::G2Projective>();
-    // test_mul_group::<ark_bls12_377::G2Projective>();
+    test_sum_group::<ark_bls12_377::G1Affine>();
+    test_mul_group::<ark_bls12_377::G1Affine>();
+    test_sum_group::<ark_bls12_377::G1Projective>();
+    test_mul_group::<ark_bls12_377::G1Projective>();
+    test_sum_group::<ark_bls12_377::G2Affine>();
+    test_mul_group::<ark_bls12_377::G2Affine>();
+    test_sum_group::<ark_bls12_377::G2Projective>();
+    test_mul_group::<ark_bls12_377::G2Projective>();
 
-    // test_mul_mulfield::<ark_bls12_377::Bls12_377>();
+    test_mul_mulfield::<ark_bls12_377::Bls12_377>();
 
-    // test_pairing::<ark_bls12_377::Bls12_377, RSS3PairingShare<ark_bls12_377::Bls12_377>>();
+    test_pairing::<ark_bls12_377::Bls12_377, RSS3PairingShare<ark_bls12_377::Bls12_377>>();
 
-    // test_king_share::<ark_bls12_377::Fr>();
+    test_king_share::<ark_bls12_377::Fr>();
     test_king_share_batch::<ark_bls12_377::Fr>();
 
     debug!("Done");

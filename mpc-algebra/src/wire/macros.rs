@@ -127,6 +127,7 @@ macro_rules! impl_basics_2 {
         }
         impl<T: $bound, S: $share<T>> UniformRand for $wrap<T, S> {
             fn rand<R: Rng + ?Sized>(rng: &mut R) -> Self {
+                debug!("calling rand1");
                 Self::Shared(<S as UniformRand>::rand(rng))
             }
         }
