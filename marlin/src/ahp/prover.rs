@@ -24,6 +24,7 @@ use ark_std::{
     io::{Read, Write},
 };
 use mpc_trait::MpcWire;
+use log::debug;
 
 /// State for the AHP prover.
 pub struct ProverState<'a, F: PrimeField> {
@@ -65,7 +66,7 @@ impl<'a, F: PrimeField> ProverState<'a, F> {
 }
 
 /// Each prover message that is not a list of oracles is a list of field elements.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum ProverMsg<F: Field> {
     /// Some rounds, the prover sends only oracles. (This is actually the case for all
     /// rounds in Marlin.)
@@ -158,6 +159,7 @@ impl<F: Field> CanonicalDeserialize for ProverMsg<F> {
 }
 
 /// The first set of prover oracles.
+#[derive(Debug)]
 pub struct ProverFirstOracles<F: Field> {
     /// The LDE of `w`.
     pub w: LabeledPolynomial<F>,
@@ -242,6 +244,8 @@ impl<F: PrimeField> AHPForR1CS<F> {
             )
         };
         formatted_input_assignment.publicize();
+        // debug!("\nformatted_input_assignment: {}\n", formatted_input_assignment);
+        // debug!("witness_assignment0: {:?}\n", witness_assignment);//good
 
         let num_input_variables = formatted_input_assignment.len();
         let num_witness_variables = witness_assignment.len();
@@ -269,6 +273,7 @@ impl<F: PrimeField> AHPForR1CS<F> {
             }
             acc
         };
+        // debug!("witness_assignment1[0]: {:?}\n", witness_assignment[0]);//good
 
         let eval_z_a_time = start_timer!(|| "Evaluating z_A");
         let z_a = index.a.iter().map(|row| inner_prod_fn(row)).collect();
@@ -317,6 +322,8 @@ impl<F: PrimeField> AHPForR1CS<F> {
         let domain_h = state.domain_h;
         let zk_bound = state.zk_bound;
 
+        // debug!("witness_assignment: {:?}\n", state.witness_assignment);
+
         let v_H: DensePolynomial<F> = domain_h.vanishing_polynomial().into();
 
         let x_time = start_timer!(|| "Computing x polynomial and evals");
@@ -326,12 +333,15 @@ impl<F: PrimeField> AHPForR1CS<F> {
             domain_x,
         )
         .interpolate();
+        // debug!("x_poly: {:?}", x_poly);//all the same
         let x_evals = domain_h.fft(&x_poly);
         end_timer!(x_time);
 
         let ratio = domain_h.size() / domain_x.size();
 
         let mut w_extended = state.witness_assignment.clone();
+        // debug!("w_extended: {:?}", w_extended);//all the same
+
         w_extended.extend(vec![
             F::zero();
             domain_h.size()
@@ -349,13 +359,20 @@ impl<F: PrimeField> AHPForR1CS<F> {
                 }
             })
             .collect();
+        // debug!("w_poly_evals: {:?}", w_poly_evals);//good
 
         let w_poly = &EvaluationsOnDomain::from_vec_and_domain(w_poly_evals, domain_h)
-            .interpolate()
-            + &(&DensePolynomial::from_coefficients_slice(&[F::rand(rng)]) * &v_H);
+            .interpolate();// good
+        let rand_poly = &(&DensePolynomial::from_coefficients_slice(&[F::rand(rng)]) * &v_H);
+        debug!("rand_poly: {:?}", rand_poly);// all the same
+
+        let w_poly = w_poly + rand_poly;
+        debug!("w_poly0: {:?}", w_poly);// bad
         let (w_poly, _remainder) = w_poly.divide_by_vanishing_poly(domain_x).unwrap();
         //assert!(remainder.is_zero());
         end_timer!(w_poly_time);
+        // debug!("w_poly: {:?}", w_poly);//bad
+
 
         let z_a_poly_time = start_timer!(|| "Computing z_A polynomial");
         let z_a = state.z_a.clone().unwrap();

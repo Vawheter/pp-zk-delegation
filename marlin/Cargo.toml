@@ -36,6 +36,7 @@ mpc-algebra = { path = "../mpc-algebra" }
 mpc-trait = { path = "../mpc-trait" }
 blake2 = "0.9"
 ark-bls12-377 = { path = "../curves/bls12_377", version = "0.2.0", default-features = false, features = ["curve"] }
+log = {version = "0.4"}
 
 [dev-dependencies]
 blake2 = { version = "0.9", default-features = false }

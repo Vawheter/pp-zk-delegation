@@ -10,6 +10,8 @@ use ark_std::{
 };
 use mpc_trait::MpcWire;
 
+// use ark_std::fmt::{Display, Formatter, Result as FmtResult};
+
 /// Labels a `LabeledPolynomial` or a `LabeledCommitment`.
 pub type PolynomialLabel = String;
 
@@ -187,7 +189,7 @@ impl<'a, F: Field, P: Polynomial<F>> LabeledPolynomial<F, P> {
 }
 
 /// A commitment along with information about its degree bound (if any).
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct LabeledCommitment<C: PCCommitment> {
     label: PolynomialLabel,
     /// The commitment
@@ -235,6 +237,13 @@ impl<C: PCCommitment> ark_ff::ToBytes for LabeledCommitment<C> {
         self.commitment.write(writer)
     }
 }
+
+// impl<C: PCCommitment + ToConstraintField<F>> Display for LabeledCommitment<C> {
+//     #[inline]
+//     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+//         write!(f, "{:?} ", self.commitment.to_field_elements())
+//     }
+// }
 
 /// A term in a linear combination.
 #[derive(Hash, Ord, PartialOrd, Clone, Eq, PartialEq, Debug)]

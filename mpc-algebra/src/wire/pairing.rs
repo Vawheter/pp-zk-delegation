@@ -283,7 +283,6 @@ macro_rules! impl_pairing_mpc_wrapper {
         }
         impl<E: $bound1, PS: $bound2<E>> UniformRand for $wrap<E, PS> {
             fn rand<R: Rng + ?Sized>(rng: &mut R) -> Self {
-                debug!("calling rand");
                 Self {
                     val: $wrapped::rand(rng),
                 }
@@ -813,7 +812,6 @@ macro_rules! impl_aff_proj {
                 b
             }
             fn scalar_mul<S: Into<Self::ScalarField>>(&self, other: S) -> Self::Projective {
-                debug!("in scalar_mul");
                 (*self * other.into()).into()
             }
         }
@@ -839,19 +837,15 @@ macro_rules! impl_aff_proj {
             fn add_assign_mixed(&mut self, o: &<Self as ProjectiveCurve>::Affine) {
                 let new_self = match (&self.val, &o.val) {
                     (MpcGroup::Shared(a), MpcGroup::Shared(b)) => {
-                        debug!("calling add_sh_proj_sh_aff");
                         MpcGroup::Shared(PS::$g_name::add_sh_proj_sh_aff(a.clone(), b))
                     }
                     (MpcGroup::Shared(a), MpcGroup::Public(b)) => {
-                        debug!("calling add_sh_proj_pub_aff");
                         MpcGroup::Shared(PS::$g_name::add_sh_proj_pub_aff(a.clone(), b))
                     }
                     (MpcGroup::Public(a), MpcGroup::Shared(b)) => {
-                        debug!("calling add_pub_proj_sh_aff");
                         MpcGroup::Shared(PS::$g_name::add_pub_proj_sh_aff(a, b.clone()))
                     }
                     (MpcGroup::Public(a), MpcGroup::Public(b)) => MpcGroup::Public({
-                        debug!("calling add_assign_mixed");
                         let mut a = a.clone();
                         a.add_assign_mixed(b);
                         a

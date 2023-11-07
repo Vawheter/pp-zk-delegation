@@ -309,12 +309,12 @@ impl<G: Group, M> Reveal for RSS3GroupShare<G, M> {
         let mut res0 = G::zero();
         let mut res1 = G::zero();
         for party_id in 0..3 {
-            debug!("\nss[{}][0]: {},\n ss[{}][1]: {}\n", party_id, shares_vec[party_id][0], party_id, shares_vec[party_id][1]);
+            // debug!("\nparty_id: {}", party_id);
+            // debug!("\nval0: {},\nval1: {}\n", shares_vec[party_id][0], shares_vec[party_id][1]);
             res0 += shares_vec[party_id][0];
             res1 += shares_vec[party_id][1];
         }
-        debug!("res0: {}, res1: {}", res0, res1);
-        debug!("\n");
+        // debug!("res0: {}\nres1: {}\n", res0, res1);
 
         assert_eq!(res0, res1);
         res0
@@ -548,10 +548,20 @@ macro_rules! impl_basics {
             }
         }
         impl<T: $bound> UniformRand for $share<T> {
-            fn rand<R: Rng + ?Sized>(rng: &mut R) -> Self {
-                Self {
-                    val0: <T as UniformRand>::rand(rng),
-                    val1: <T as UniformRand>::rand(rng),
+            fn rand<R: Rng + ?Sized>(rng: &mut R) -> Self { 
+                // debug!("calling rand");           
+                // Self {
+                //     val0: <T as UniformRand>::rand(rng),
+                //     val1: <T as UniformRand>::rand(rng),
+                // }
+                let r0 = <T as UniformRand>::rand(rng);
+                let r1 = <T as UniformRand>::rand(rng);
+                let r2 = <T as UniformRand>::rand(rng);
+                match Net::party_id() {
+                    0 => Self { val0: r0, val1: r2 },
+                    1 => Self { val0: r1, val1: r0 },
+                    2 => Self { val0: r2, val1: r1 },
+                    _ => Self::default(),
                 }
             }
         }
@@ -803,18 +813,11 @@ macro_rules! groups_share {
                 mut a: Self::ProjectiveShare,
                 o: &E::$affine,
             ) -> Self::ProjectiveShare {
-                debug!("\nNet::party_id(): {}", Net::party_id());
-                // debug!("\na.val0: {}", a.val0);
-                // debug!("\na.val1: {}", a.val1);
-                debug!("a(before): {}", a);
                 match Net::party_id() {
                     0 => a.val0.add_assign_mixed(&o),
                     1 => a.val1.add_assign_mixed(&o),
                     _ => (),
                 }
-                // debug!("\na.val0: {}", a.val0);
-                // debug!("\na.val1: {}", a.val1);
-                debug!("a(after): {}", a);
                 a
             }
             fn add_pub_proj_sh_aff(_a: &E::$proj, _o: Self::AffineShare) -> Self::ProjectiveShare {

@@ -26,7 +26,6 @@ use ark_relations::r1cs::ConstraintSynthesizer;
 use ark_std::rand::RngCore;
 use mpc_trait::MpcWire;
 use digest::Digest;
-
 use ark_std::{
     collections::BTreeMap,
     format,
@@ -35,6 +34,9 @@ use ark_std::{
     vec,
     vec::Vec,
 };
+
+// use ark_ff::{ToConstraintField};
+// use log::debug;
 
 #[cfg(not(feature = "std"))]
 macro_rules! eprintln {
@@ -167,11 +169,12 @@ impl<F: PrimeField, PC: PolynomialCommitment<F, DensePolynomial<F>>, D: Digest> 
 
         // --------------------------------------------------------------------
         // First round
-
         let (mut prover_first_msg, prover_first_oracles, prover_state) =
             AHPForR1CS::prover_first_round(prover_init_state, zk_rng)?;
         prover_first_msg.publicize();
 
+        // debug!("prover_first_msg: {:?}\nprover_first_oracles:{:?}", prover_first_msg, prover_first_oracles);
+        
         let first_round_comm_time = start_timer!(|| "Committing to first round polys");
         let (mut first_comms, first_comm_rands) = PC::commit(
             &index_pk.committer_key,
@@ -179,6 +182,7 @@ impl<F: PrimeField, PC: PolynomialCommitment<F, DensePolynomial<F>>, D: Digest> 
             Some(zk_rng),
         )
         .map_err(Error::from_pc_err)?;
+        // debug!("first_comms: {:?}", first_comms);
         first_comms.publicize();
         end_timer!(first_round_comm_time);
 

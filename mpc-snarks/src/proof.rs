@@ -132,7 +132,6 @@ mod squarings {
                     let pf = create_random_proof::<MpcPairingEngine<E, S>, _, _>(circ_data, &mpc_params, rng)
                         .unwrap();
                     let reveal_timer = start_timer!(|| "reveal");
-                    debug!("proof\n: {:?}\n", pf);
                     let pf = pf.reveal();
                     end_timer!(reveal_timer);
                     pf

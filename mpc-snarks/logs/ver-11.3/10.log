@@ -1,0 +1,166 @@
+++ BIN=./target/release/proof
+++ BIN=./target/release/proof
+++ ./scripts/bench.zsh groth16 local 10 3
+15.570ms
+++ BIN=./target/release/proof
+++ ./scripts/bench.zsh groth16 ark-local 10 3
+15.533ms
+++ BIN=./target/release/proof
+++ ./scripts/bench.zsh groth16 hbc 10 3
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] Contacting 1
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] Awaiting 0
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] Awaiting 0
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] Contacting 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] Contacting 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] Awaiting 1
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 2464,
+        bytes_recv: 2464,
+        broadcasts: 5,
+        to_king: 0,
+        from_king: 0,
+    }
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 2464,
+        bytes_recv: 2464,
+        broadcasts: 5,
+        to_king: 0,
+        from_king: 0,
+    }
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 2464,
+        bytes_recv: 2464,
+        broadcasts: 5,
+        to_king: 0,
+        from_king: 0,
+    }
+22.033ms
+++ BIN=./target/release/proof
+++ ./scripts/bench.zsh groth16 spdz 10 3
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] Contacting 1
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] Awaiting 0
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] Awaiting 0
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] Contacting 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] Contacting 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] Awaiting 1
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 5568,
+        bytes_recv: 5568,
+        broadcasts: 15,
+        to_king: 0,
+        from_king: 0,
+    }
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 5568,
+        bytes_recv: 5568,
+        broadcasts: 15,
+        to_king: 0,
+        from_king: 0,
+    }
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 5568,
+        bytes_recv: 5568,
+        broadcasts: 15,
+        to_king: 0,
+        from_king: 0,
+    }
+42.906ms
+++ BIN=./target/release/proof
+++ ./scripts/bench.zsh groth16 gsz 10 3
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] Contacting 1
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] Awaiting 0
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] Awaiting 0
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] Contacting 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] Contacting 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] Awaiting 1
+[DEBUG mpc_algebra::share::gsz20::field] Open Field: 16 checks
+[DEBUG mpc_algebra::share::gsz20::field] Open Field: 16 checks
+[DEBUG mpc_algebra::share::gsz20::field] Open Field: 16 checks
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 2912,
+        bytes_recv: 2704,
+        broadcasts: 11,
+        to_king: 13,
+        from_king: 13,
+    }
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 1800,
+        bytes_recv: 1800,
+        broadcasts: 11,
+        to_king: 13,
+        from_king: 13,
+    }
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 1800,
+        bytes_recv: 1800,
+        broadcasts: 11,
+        to_king: 13,
+        from_king: 13,
+    }
+36.261ms
+++ BIN=./target/release/proof
+++ ./scripts/bench.zsh groth16 rss3 10 3
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] Contacting 1
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] Awaiting 0
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] Awaiting 0
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] Contacting 2
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] Contacting 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] Awaiting 1
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 1336,
+        bytes_recv: 1336,
+        broadcasts: 3,
+        to_king: 0,
+        from_king: 0,
+    }
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 1336,
+        bytes_recv: 1336,
+        broadcasts: 3,
+        to_king: 0,
+        from_king: 0,
+    }
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 1336,
+        bytes_recv: 1336,
+        broadcasts: 3,
+        to_king: 0,
+        from_king: 0,
+    }
+40.872ms
