@@ -61,6 +61,7 @@ impl<T: Field, S: FieldShare<T>> BeaverSource<S, S, S> for DummyFieldTripleSourc
     }
     #[inline]
     fn inv_pair(&mut self) -> (S, S) {
+        // debug!("calling dummy inv_pair");
         (
             S::from_add_shared(if Net::am_king() {
                 T::one()

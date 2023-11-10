@@ -8,7 +8,7 @@ use ark_std::{
     marker::PhantomData,
     ops::{Add, AddAssign},
 };
-
+use log::debug;
 /// `UniversalParams` are the universal parameters for the KZG10 scheme.
 #[derive(Derivative)]
 #[derivative(Clone(bound = ""), Debug(bound = ""))]
@@ -475,6 +475,7 @@ impl<F: PrimeField, P: UVPolynomial<F>> PCRandomness for Randomness<F, P> {
     }
 
     fn rand<R: RngCore>(hiding_bound: usize, _: bool, _: Option<usize>, rng: &mut R) -> Self {
+        debug!("calling PC rand");
         let mut randomness = Randomness::empty();
         let hiding_poly_degree = Self::calculate_hiding_polynomial_degree(hiding_bound);
         randomness.blinding_polynomial = P::rand(hiding_poly_degree, rng);

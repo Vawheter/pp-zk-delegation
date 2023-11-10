@@ -13,7 +13,7 @@ use core::borrow::Borrow;
 #[derive(Clone)]
 pub struct ParametersVar;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct RandomnessVar<F: Field>(pub Vec<UInt8<F>>);
 
 pub struct CommGadget;

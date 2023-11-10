@@ -9,7 +9,7 @@ use ark_std::{
     vec,
 };
 use mpc_trait::{MpcWire, struct_mpc_wire_simp_impl};
-
+use log::debug;
 /// `UniversalParams` are the universal parameters for the inner product arg scheme.
 #[derive(Derivative, CanonicalSerialize, CanonicalDeserialize)]
 #[derivative(Default(bound = ""), Clone(bound = ""), Debug(bound = ""))]
@@ -186,7 +186,9 @@ impl<G: AffineCurve> PCRandomness for Randomness<G> {
         } else {
             None
         };
-
+        debug!("calling PCRandomness rand");
+        debug!("\nrand: {:?}", rand);
+        debug!("\nshifted_rand: {:?}", shifted_rand);
         Self { rand, shifted_rand }
     }
 }

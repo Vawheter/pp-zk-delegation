@@ -41,6 +41,7 @@ tracing = { version = "0.1", default-features = false, features = [ "attributes"
 
 mpc-trait = { path = "../mpc-trait" }
 mpc-algebra = { path = "../mpc-algebra" }
+log = {version = "0.4"}
 
 [dev-dependencies]
 ark-ed-on-bls12-381 = { version = "^0.2.0", path = "../curves/ed_on_bls12_381", default-features = false }

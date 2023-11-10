@@ -12,7 +12,7 @@ use ark_std::rand::RngCore;
 use crate::kzg10;
 /// `UniversalParams` are the universal parameters for the KZG10 scheme.
 pub type UniversalParams<E> = kzg10::UniversalParams<E>;
-
+use log::debug;
 /// `CommitterKey` is used to commit to and create evaluation proofs for a given
 /// polynomial.
 #[derive(Derivative, CanonicalSerialize, CanonicalDeserialize)]
@@ -405,13 +405,18 @@ impl<F: PrimeField, P: UVPolynomial<F>> PCRandomness for Randomness<F, P> {
         _: Option<usize>,
         rng: &mut R,
     ) -> Self {
+
         let shifted_rand = if has_degree_bound {
             Some(kzg10::Randomness::rand(hiding_bound, false, None, rng))
         } else {
             None
         };
+        let p = kzg10::Randomness::rand(hiding_bound, false, None, rng);
+        debug!("calling PCRandomness rand 2");
+        debug!("\nshifted_rand: {:?}", shifted_rand);
+        debug!("\nrand: {:?}", p);
         Self {
-            rand: kzg10::Randomness::rand(hiding_bound, false, None, rng),
+            rand: p,
             shifted_rand,
         }
     }

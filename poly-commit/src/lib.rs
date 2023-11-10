@@ -14,7 +14,7 @@
 extern crate derivative;
 #[macro_use]
 extern crate ark_std;
-
+use log::debug;
 use ark_ff::Field;
 pub use ark_poly::{Polynomial, UVPolynomial};
 use ark_std::rand::RngCore;
@@ -217,6 +217,7 @@ pub trait PolynomialCommitment<F: Field, P: Polynomial<F>>: Sized {
         Self::Randomness: 'a,
         Self::Commitment: 'a,
     {
+        debug!("calling open 1");
         let opening_challenges = |pow| opening_challenge.pow(&[pow]);
         Self::open_individual_opening_challenges(
             ck,

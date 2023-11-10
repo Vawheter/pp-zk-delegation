@@ -32,6 +32,7 @@ use crate::msm::*;
 use crate::Reveal;
 
 use log::debug;
+use crate::wire::DummyFieldTripleSource;
 
 #[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct RSS3FieldShare<T> {
@@ -58,6 +59,10 @@ impl<F: Field> RSS3FieldShare<F> {
     }
 
     fn d_poly_share(p: DensePolynomial<Self>) -> Vec<ark_poly::univariate::DensePolynomial<F>> {
+        let vec0: Vec<F> = p.clone().into_iter().map(|s| s.val0).collect();
+        let vec1: Vec<F> = p.clone().into_iter().map(|s| s.val1).collect();
+        debug!("vec0: {:?}", vec0);
+        debug!("vec1: {:?}", vec1);
         vec![ark_poly::univariate::DensePolynomial::from_coefficients_vec(
             p.clone().into_iter().map(|s| s.val0).collect(),
         ), ark_poly::univariate::DensePolynomial::from_coefficients_vec(
@@ -87,14 +92,27 @@ impl<F: Field> RSS3FieldShare<F> {
     }
 
     fn d_poly_unshare(p: Vec<ark_poly::univariate::DensePolynomial<F>>) -> DensePolynomial<Self> {
-        p[0].coeffs.clone()
-            .into_iter()
-            .zip(p[1].coeffs.clone().into_iter())
-            .map(|(s0, s1)| 
-                Self {
-                    val0: s0,
-                    val1: s1,
-            }).collect()
+        // debug!("p[0].coeffs: {:?}", p[0].coeffs.clone());
+        // debug!("p[0].coeffs.len: {:?}", p[0].coeffs.clone().len());
+        // debug!("p[1].coeffs: {:?}", p[1].coeffs.clone());
+        // debug!("p[1].coeffs.len: {:?}", p[1].coeffs.clone().len());
+       
+        let len = if p[0].coeffs.len() > p[1].coeffs.len() { p[0].coeffs.len() } else { p[1].coeffs.len() };
+
+        
+        let mut p0_coeffs = vec![F::zero(); len];
+        let mut p1_coeffs = vec![F::zero(); len];
+        
+        if !p[0].is_zero() { p0_coeffs = p[0].coeffs.clone() };
+        if !p[1].is_zero() { p1_coeffs = p[1].coeffs.clone() };
+        // let p1_coeffs = if p[1].is_zero() { vec![F::zero; len] } else { p[1].coeffs.clone() };
+
+        (0..len).into_iter().map(|i| {
+            Self {
+                val0: p0_coeffs[i],
+                val1: p1_coeffs[i],
+            }
+        }).collect() 
     }
 }
 
@@ -118,7 +136,13 @@ impl<F: Field> Reveal for RSS3FieldShare<F> {
 
     /// Construct a share of the sum of the `b` over all machines in the protocol.
     fn from_add_shared(f: Self::Base) -> Self {
-        unimplemented!()
+        // unimplemented!()
+        match Net::party_id() {
+            0 => Self { val0: F::zero(), val1: F::zero() },
+            1 => Self { val0: F::one(), val1: F::zero() },
+            2 => Self { val0: F::zero(), val1: F::one() },
+            _ => Self::default(),
+        }
     }
 
     /// Lift public data (same in all machines) into shared data.
@@ -219,17 +243,19 @@ impl<F: Field> FieldShare<F> for RSS3FieldShare<F> {
     fn batch_open(selfs: impl IntoIterator<Item = Self>) -> Vec<F> { // Rewrite the function
         let self_vec: Vec<Vec<F>> = selfs.into_iter().map(|s| vec![s.val0, s.val1] ).collect();
         let all_vals = Net::broadcast(&self_vec);
-        all_vals.into_iter()
-            .map(|vals| {
-                let mut res0 = F::zero();
-                let mut res1 = F::zero();
-                for party_id in 0..3 {
-                    res0 += vals[party_id][0];
-                    res1 += vals[party_id][1];
-                }
-                assert_eq!(res0, res1);
-                res0
-            }).collect()
+        let len = all_vals[0].len();
+        let mut res = vec![F::zero(); len];
+        for i in 0..len {
+            let mut tmp0 = F::zero();
+            let mut tmp1 = F::zero();
+            for party_id in 0..3 {
+                tmp0 += all_vals[party_id][i][0];
+                tmp1 += all_vals[party_id][i][1];
+            }
+            assert_eq!(tmp0, tmp1);
+            res[i] = tmp0;  
+        }
+        res
     }
 
     fn add(&mut self, other: &Self) -> &mut Self {
@@ -263,8 +289,12 @@ impl<F: Field> FieldShare<F> for RSS3FieldShare<F> {
         num: DenseOrSparsePolynomial<Self>,
         den: DenseOrSparsePolynomial<F>,
     ) -> Option<(DensePolynomial<Self>, DensePolynomial<Self>)> {
+        debug!("calling univariate_div_qr");
+        debug!("\nnum 0:{:?}", num);
         let num = Self::poly_share(num);
         let den = Self::poly_share2(den);
+        debug!("\nnum 1:{:?}", num);
+
         let mut q_polys: Vec<ark_poly::univariate::DensePolynomial<F>> = vec![];
         let mut r_polys: Vec<ark_poly::univariate::DensePolynomial<F>> = vec![];
         num.into_iter()
@@ -273,6 +303,12 @@ impl<F: Field> FieldShare<F> for RSS3FieldShare<F> {
                 q_polys.push(q);
                 r_polys.push(r);
             }); 
+        debug!("\nq_polys:{:?}", q_polys);
+        debug!("\nr_polys:{:?}", r_polys);
+        
+        debug!("\nSelf::d_poly_unshare(q_polys):{:?}", Self::d_poly_unshare(q_polys.clone()));
+        debug!("\nSelf::d_poly_unshare(r_polys):{:?}", Self::d_poly_unshare(r_polys.clone()));
+
         Some((Self::d_poly_unshare(q_polys), Self::d_poly_unshare(r_polys)))
     }
 }
@@ -412,17 +448,19 @@ impl<G: Group, M: Msm<G, G::ScalarField>> GroupShare<G> for RSS3GroupShare<G, M>
     fn batch_open(selfs: impl IntoIterator<Item = Self>) -> Vec<G> {
         let self_vec: Vec<Vec<G>> = selfs.into_iter().map(|s| vec![s.val0, s.val1] ).collect();
         let all_vals = Net::broadcast(&self_vec);
-        all_vals.into_iter()
-        .map(|vals| {
-            let mut res0 = G::zero();
-            let mut res1 = G::zero();
+        let len = all_vals[0].len();
+        let mut res = vec![G::zero(); len];
+        for i in 0..len {
+            let mut tmp0 = G::zero();
+            let mut tmp1 = G::zero();
             for party_id in 0..3 {
-                res0 += vals[party_id][0];
-                res1 += vals[party_id][1];
+                tmp0 += all_vals[party_id][i][0];
+                tmp1 += all_vals[party_id][i][1];
             }
-            assert_eq!(res0, res1);
-            res0
-        }).collect()
+            assert_eq!(tmp0, tmp1);
+            res[i] = tmp0;  
+        }
+        res
     }
 
     fn add(&mut self, other: &Self) -> &mut Self {
@@ -624,10 +662,20 @@ macro_rules! impl_basics_2_param {
         }
         impl<T: $bound, M> UniformRand for $share<T, M> {
             fn rand<R: Rng + ?Sized>(rng: &mut R) -> Self {
-                Self {
-                    val0: <T as UniformRand>::rand(rng),
-                    val1: <T as UniformRand>::rand(rng),
-                    _phants: PhantomData::default(),
+                // Self {
+                //     val0: <T as UniformRand>::rand(rng),
+                //     val1: <T as UniformRand>::rand(rng),
+                //     _phants: PhantomData::default(),
+                // }
+                // }
+                let r0 = <T as UniformRand>::rand(rng);
+                let r1 = <T as UniformRand>::rand(rng);
+                let r2 = <T as UniformRand>::rand(rng);
+                match Net::party_id() {
+                    0 => Self { val0: r0, val1: r2, _phants: PhantomData::default(), },
+                    1 => Self { val0: r1, val1: r0, _phants: PhantomData::default(), },
+                    2 => Self { val0: r2, val1: r1, _phants: PhantomData::default(), },
+                    _ => Self::default(),
                 }
             }
         }
@@ -705,17 +753,19 @@ impl<F: Field> FieldShare<F> for MulFieldShare<F> {
     fn batch_open(selfs: impl IntoIterator<Item = Self>) -> Vec<F> {
         let self_vec: Vec<Vec<F>> = selfs.into_iter().map(|s| vec![s.val0, s.val1] ).collect();
         let all_vals = Net::broadcast(&self_vec);
-        all_vals.into_iter()
-        .map(|vals| {
-            let mut res0 = F::one();
-            let mut res1 = F::one();
+        let len = all_vals[0].len();
+        let mut res = vec![F::one(); len];
+        for i in 0..len {
+            let mut tmp0 = F::one();
+            let mut tmp1 = F::one();
             for party_id in 0..3 {
-                res0 *= vals[party_id][0];
-                res1 *= vals[party_id][1];
+                tmp0 *= all_vals[party_id][i][0];
+                tmp1 *= all_vals[party_id][i][1];
             }
-            assert_eq!(res0, res1);
-            res0
-        }).collect()
+            assert_eq!(tmp0, tmp1);
+            res[i] = tmp0;  
+        }
+        res
     }
 
     fn add(&mut self, _other: &Self) -> &mut Self {

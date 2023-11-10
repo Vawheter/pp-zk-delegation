@@ -15,7 +15,7 @@ use ark_std::{format, marker::PhantomData, ops::Div, vec};
 use ark_std::rand::RngCore;
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;
-
+use log::debug;
 mod data_structures;
 pub use data_structures::*;
 
@@ -203,10 +203,13 @@ where
         randomness: &Randomness<E::Fr, P>,
     ) -> Result<(P, Option<P>), Error> {
         let divisor = P::from_coefficients_vec(vec![-point, E::Fr::one()]);
+        debug!("\np: {:?}", p);//seems good
+        debug!("\ndivisor: {:?}", divisor);//all the same
 
         let witness_time = start_timer!(|| "Computing witness polynomial");
         let witness_polynomial = p / &divisor;
         end_timer!(witness_time);
+        debug!("\nwitness_poly: {:?}", witness_polynomial);
 
         let random_witness_polynomial = if randomness.is_hiding() {
             let random_p = &randomness.blinding_polynomial;
@@ -232,12 +235,16 @@ where
         Self::check_degree_is_too_large(witness_polynomial.degree(), powers.size())?;
         let num_leading_zeros = 0;
         let witness_coeffs = witness_polynomial.coeffs();
+        // debug!("\nwitness_coeffs : {:?}", witness_coeffs);//bad
 
         let witness_comm_time = start_timer!(|| "Computing commitment to witness polynomial");
         let mut w = <E::G1Affine as AffineCurve>::multi_scalar_mul(
             &powers.powers_of_g[num_leading_zeros..],
             &witness_coeffs,
         );
+        // debug!("powers.powers_of_g[num_leading_zeros..]: {:?}", powers.powers_of_g);//all the same
+        // debug!("witness_coeffs: {:?}", witness_coeffs);//bad
+        // debug!("w0: {:?}", w);//bad
         end_timer!(witness_comm_time);
 
         let random_v = if let Some(hiding_witness_polynomial) = hiding_witness_polynomial {
@@ -257,6 +264,9 @@ where
         } else {
             None
         };
+        // debug!("w1: {:?}", w);
+        // debug!("random_v: {:?}", random_v);
+
 
         Ok(Proof {
             w: w.into_affine(),
@@ -271,12 +281,16 @@ where
         point: P::Point,
         rand: &Randomness<E::Fr, P>,
     ) -> Result<Proof<E>, Error> {
+        debug!("calling open 2");
+
         Self::check_degree_is_too_large(p.degree(), powers.size())?;
         let open_time = start_timer!(|| format!("Opening polynomial of degree {}", p.degree()));
 
         let witness_time = start_timer!(|| "Computing witness polynomials");
         let (witness_poly, hiding_witness_poly) = Self::compute_witness_polynomial(p, point, rand)?;
         end_timer!(witness_time);
+        // debug!("\nwitness_poly: {:?}", witness_poly);
+
 
         let proof = Self::open_with_witness_polynomial(
             powers,
@@ -285,6 +299,7 @@ where
             &witness_poly,
             hiding_witness_poly.as_ref(),
         );
+        // debug!("proof: {:?}", proof);
 
         end_timer!(open_time);
         proof

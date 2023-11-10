@@ -12,7 +12,7 @@ use ark_std::marker::PhantomData;
 use ark_std::rand::RngCore;
 use ark_std::vec::Vec;
 use ark_std::UniformRand;
-
+use log::debug;
 /// data structures used by multilinear extension commitment scheme
 pub mod data_structures;
 
@@ -151,6 +151,7 @@ impl<E: PairingEngine> MultilinearPC<E> {
         polynomial: &impl MultilinearExtension<E::Fr>,
         point: &[E::Fr],
     ) -> Proof<E> {
+        debug!("calling open");
         assert_eq!(polynomial.num_vars(), ck.nv, "Invalid size of polynomial");
         let nv = polynomial.num_vars();
         let mut r: Vec<Vec<E::Fr>> = (0..nv + 1).map(|_| Vec::new()).collect();

@@ -8,7 +8,7 @@ use mpc_trait::{struct_mpc_wire_impl, MpcWire};
 
 /// Check that S(X)*(P(X) + P(wX)) + (1-S(X))*P(X)*P(WX) - P(WWX) = Q(X)*Z(X)
 /// where Z vanishes on the gate domain, and Q is existential
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct GateProof<C, O> {
     /// Q commitment
     pub q_cmt: C,
@@ -27,7 +27,7 @@ pub struct GateProof<C, O> {
 /// Check that P(X) agree with v(X) for the public wires
 /// via P(X) - v(X) = Q(X)*Z(X)
 /// where Z vanishes on the public wires
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct PublicProof<C, O> {
     /// Q commitment
     pub q_cmt: C,
@@ -38,7 +38,7 @@ pub struct PublicProof<C, O> {
 }
 
 /// Proof that some polynomial f has a product pi over a domain
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ProductProof<C, O> {
     /// t (partial products) commitment
     pub t_cmt: C,
@@ -59,7 +59,7 @@ pub struct ProductProof<C, O> {
 /// Check that P(X) = P(W(X)) on the wires
 /// via P(X) - v(X) = Q(X)*Z(X)
 /// where Z vanishes on the public wires
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct WiringProof<C, O> {
     /// commitment to L_1
     pub l1_cmt: C,
