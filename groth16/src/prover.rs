@@ -78,7 +78,6 @@ where
     let c_acc_time = start_timer!(|| "Compute C");
 
     let h_acc = VariableBaseMSM::multi_scalar_mul(&pk.h_query, &h_assignment);
-    debug!("h_acc: {}", h_acc);
     drop(h_assignment);
     // Compute C
     let prover = cs.borrow().unwrap();

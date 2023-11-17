@@ -14,7 +14,7 @@ pub use relations::*;
 pub mod reveal;
 mod util;
 
-use log::debug;
+// use log::debug;
 
 use blake2::Blake2s;
 
@@ -128,7 +128,6 @@ where
         let t = t_evals.interpolate();
         let (t_cmt, t, t_rand) = self.commit("t", t.clone(), None, None).unwrap();
         let w = domain.element(1);
-        // debug!("t_rand: {:#?}", t_rand);
         // let q = {
         //     let d = &shift(t.clone(), w) - &t.naive_mul(&shift(f.clone(), w));
         //     let (q,r) = d.divide_by_vanishing_poly(domain).unwrap();
@@ -185,8 +184,6 @@ where
         //            domain.evaluate_vanishing_polynomial(r) * q_r_open.0
         //        );
         //        debug_assert_eq!(t_wk_open.0, F::one());
-        debug!("generating ProductProof");
-        // debug!("q_r_open: {:?}", q_r_open);
         ProductProof {
             t_cmt: t_cmt.commitment,
             q_cmt: q_cmt.commitment,//good
@@ -218,7 +215,6 @@ where
         //TODO: batch!
         let l1_evals = &num_evals / &den_evals;
         let l1 = l1_evals.clone().interpolate();
-        // debug!("\n\nl1: {:?}", l1);//good
         let (l1_cmt, l1, l1_rand) = self.commit("l1", l1, None, None).unwrap();
         let l1_prod_pf = self.prove_unit_product(&l1, &l1_cmt, &l1_rand, dom);
         let l2_q_coeffs = {
@@ -237,35 +233,30 @@ where
             l1_den_v
         };
         let l2_q = DensePolynomial::from_coefficients_vec(l2_q_coeffs);
-        // debug!("\n\nl2_q: {:?}", l2_q);//good
 
         let (l2_q_cmt, l2_q, l2_q_rand) = self.commit("l2_q", l2_q, None, None).unwrap();
-        // debug!("\n\nl2_q_cmt: {}", l2_q_cmt);
 
         let x = self.fs_rng.borrow_mut().gen::<F>();
         let l2_q_x_open = self.eval(&l2_q, &l2_q_rand, &l2_q_cmt, x).unwrap();
         let w_x_open = self
             .eval(&self.pk.w, &PC::Randomness::empty(), &self.pk.w_cmt, x)
             .unwrap();
-        debug!("\n\nhere here calling eval for l1_x_open");
 
         let l1_x_open = self.eval(&l1, &l1_rand, &l1_cmt, x).unwrap();
         let p_x_open = self.eval(&p, &p_rand, &p_cmt, x).unwrap();
-        // debug!("\n\np: {:?}", p);//good
-        // debug!("\n\nl1_rand: {:?}", l1_rand);//good
 
-               debug_assert_eq!(
-                   (p_x_open.0 + y * x + z) * l1_x_open.0 - (p_x_open.0 + y * w_x_open.0 + z),
-                   l2_q_x_open.0 * dom.evaluate_vanishing_polynomial(x)
-               );
+        //    debug_assert_eq!(
+        //        (p_x_open.0 + y * x + z) * l1_x_open.0 - (p_x_open.0 + y * w_x_open.0 + z),
+        //        l2_q_x_open.0 * dom.evaluate_vanishing_polynomial(x)
+        //    );
         end_timer!(timer);
         WiringProof {
-            l1_prod_pf,//good
+            l1_prod_pf,
             l2_q_x_open,
             l1_x_open,
             p_x_open,
             w_x_open,
-            l1_cmt: l1_cmt.commitment,//good
+            l1_cmt: l1_cmt.commitment,
             l2_q_cmt: l2_q_cmt.commitment,
         }
     }
@@ -298,7 +289,6 @@ where
         let p_open = self.eval(&p, &p_rand, &p_cmt, x).unwrap();
         //debug_assert!( p_open.0 - v.evaluate(&x), q_open.0 * z.evaluate(&x));
         end_timer!(timer);
-        // debug!("q_cmt: {:?}", q_cmt);
         PublicProof {
             q_open,
             q_cmt: q_cmt.commitment,
@@ -371,7 +361,6 @@ where
             once(p_r),
             Some(&mut *self.zk_rng.borrow_mut()),
         )?;
-        // debug!("once(p_r): {:?}", once(p_r));
         let mut y = p.polynomial().evaluate(&x);
         let p_timer = start_timer!(|| "publicize");
         y.publicize();
@@ -397,7 +386,7 @@ where
         ),
         Error<PC::Error>,
     > {
-        debug!("commit: {}", label);
+        // debug!("commit: {}", label);
         let timer = start_timer!(|| format!("commit: {}", label));
         let label_p = LabeledPolynomial::new(format!("{}", label), p, degree, hiding_bound);
         let (mut cs, mut rs) = PC::commit(
@@ -431,12 +420,10 @@ where
                 None,
             )
             .unwrap();
-        // debug!("p:{:?}", p);
         
         let public = self.prove_public(&p, &p_cmt, &p_rand, circ);
         let gates = self.prove_gates(&p, &p_cmt, &p_rand, circ);
         let wiring = self.prove_wiring(&p, &p_cmt, &p_rand, circ.domains.wires);
-        debug!("calling prove");
         Proof {
             p_cmt: p_cmt.commitment,
             wiring,

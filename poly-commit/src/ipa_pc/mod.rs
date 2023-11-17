@@ -15,7 +15,7 @@ pub use data_structures::*;
 use rayon::prelude::*;
 
 use digest::Digest;
-use log::debug;
+// use log::debug;
 /// A polynomial commitment scheme based on the hardness of the
 /// discrete logarithm problem in prime-order groups.
 /// The construction is described in detail in [[BCMS20]][pcdas].
@@ -411,7 +411,6 @@ where
                 degree_bound,
                 hiding_bound,
             ));
-            debug!("calling rand poly");
             let randomness = if let Some(h) = hiding_bound {
                 Randomness::rand(h, degree_bound.is_some(), None, rng)
             } else {

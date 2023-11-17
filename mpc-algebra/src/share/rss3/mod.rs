@@ -59,10 +59,6 @@ impl<F: Field> RSS3FieldShare<F> {
     }
 
     fn d_poly_share(p: DensePolynomial<Self>) -> Vec<ark_poly::univariate::DensePolynomial<F>> {
-        let vec0: Vec<F> = p.clone().into_iter().map(|s| s.val0).collect();
-        let vec1: Vec<F> = p.clone().into_iter().map(|s| s.val1).collect();
-        debug!("vec0: {:?}", vec0);
-        debug!("vec1: {:?}", vec1);
         vec![ark_poly::univariate::DensePolynomial::from_coefficients_vec(
             p.clone().into_iter().map(|s| s.val0).collect(),
         ), ark_poly::univariate::DensePolynomial::from_coefficients_vec(
@@ -91,21 +87,14 @@ impl<F: Field> RSS3FieldShare<F> {
         }
     }
 
-    fn d_poly_unshare(p: Vec<ark_poly::univariate::DensePolynomial<F>>) -> DensePolynomial<Self> {
-        // debug!("p[0].coeffs: {:?}", p[0].coeffs.clone());
-        // debug!("p[0].coeffs.len: {:?}", p[0].coeffs.clone().len());
-        // debug!("p[1].coeffs: {:?}", p[1].coeffs.clone());
-        // debug!("p[1].coeffs.len: {:?}", p[1].coeffs.clone().len());
-       
+    fn d_poly_unshare(p: Vec<ark_poly::univariate::DensePolynomial<F>>) -> DensePolynomial<Self> {  
         let len = if p[0].coeffs.len() > p[1].coeffs.len() { p[0].coeffs.len() } else { p[1].coeffs.len() };
 
-        
         let mut p0_coeffs = vec![F::zero(); len];
         let mut p1_coeffs = vec![F::zero(); len];
         
         if !p[0].is_zero() { p0_coeffs = p[0].coeffs.clone() };
         if !p[1].is_zero() { p1_coeffs = p[1].coeffs.clone() };
-        // let p1_coeffs = if p[1].is_zero() { vec![F::zero; len] } else { p[1].coeffs.clone() };
 
         (0..len).into_iter().map(|i| {
             Self {
@@ -128,8 +117,6 @@ impl<F: Field> Reveal for RSS3FieldShare<F> {
             res0 += shares_vec[party_id][0];
             res1 += shares_vec[party_id][1];
         }
-        // debug!("res0: {}, res1: {}", res0, res1);
-
         assert_eq!(res0, res1);
         res0
     }
@@ -289,11 +276,8 @@ impl<F: Field> FieldShare<F> for RSS3FieldShare<F> {
         num: DenseOrSparsePolynomial<Self>,
         den: DenseOrSparsePolynomial<F>,
     ) -> Option<(DensePolynomial<Self>, DensePolynomial<Self>)> {
-        debug!("calling univariate_div_qr");
-        debug!("\nnum 0:{:?}", num);
         let num = Self::poly_share(num);
         let den = Self::poly_share2(den);
-        debug!("\nnum 1:{:?}", num);
 
         let mut q_polys: Vec<ark_poly::univariate::DensePolynomial<F>> = vec![];
         let mut r_polys: Vec<ark_poly::univariate::DensePolynomial<F>> = vec![];
@@ -303,11 +287,6 @@ impl<F: Field> FieldShare<F> for RSS3FieldShare<F> {
                 q_polys.push(q);
                 r_polys.push(r);
             }); 
-        debug!("\nq_polys:{:?}", q_polys);
-        debug!("\nr_polys:{:?}", r_polys);
-        
-        debug!("\nSelf::d_poly_unshare(q_polys):{:?}", Self::d_poly_unshare(q_polys.clone()));
-        debug!("\nSelf::d_poly_unshare(r_polys):{:?}", Self::d_poly_unshare(r_polys.clone()));
 
         Some((Self::d_poly_unshare(q_polys), Self::d_poly_unshare(r_polys)))
     }
@@ -345,13 +324,9 @@ impl<G: Group, M> Reveal for RSS3GroupShare<G, M> {
         let mut res0 = G::zero();
         let mut res1 = G::zero();
         for party_id in 0..3 {
-            // debug!("\nparty_id: {}", party_id);
-            // debug!("\nval0: {},\nval1: {}\n", shares_vec[party_id][0], shares_vec[party_id][1]);
             res0 += shares_vec[party_id][0];
             res1 += shares_vec[party_id][1];
         }
-        // debug!("res0: {}\nres1: {}\n", res0, res1);
-
         assert_eq!(res0, res1);
         res0
     }
@@ -587,11 +562,6 @@ macro_rules! impl_basics {
         }
         impl<T: $bound> UniformRand for $share<T> {
             fn rand<R: Rng + ?Sized>(rng: &mut R) -> Self { 
-                // debug!("calling rand");           
-                // Self {
-                //     val0: <T as UniformRand>::rand(rng),
-                //     val1: <T as UniformRand>::rand(rng),
-                // }
                 let r0 = <T as UniformRand>::rand(rng);
                 let r1 = <T as UniformRand>::rand(rng);
                 let r2 = <T as UniformRand>::rand(rng);

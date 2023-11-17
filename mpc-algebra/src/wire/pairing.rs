@@ -783,7 +783,6 @@ macro_rules! impl_aff_proj {
                         }
                         Err(priv_scalars) => {
                             let t = start_timer!(|| "MSM inner");
-                            // debug!("\npriv_scalars[0]: {}\n", priv_scalars[0]);
                             let r = $w_pro {
                                 val: MpcGroup::Shared(PS::$g_name::sh_aff_to_proj(
                                     <PS::$share_aff as GroupShare<E::$aff>>::multi_scale_pub_group(
@@ -793,7 +792,6 @@ macro_rules! impl_aff_proj {
                                 )),
                             };
                             end_timer!(t);
-                            // debug!("\nr: {}\n", r);
                             r
                         }
                     }

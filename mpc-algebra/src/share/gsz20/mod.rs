@@ -416,7 +416,7 @@ pub mod field {
     pub fn check_field_products<F: FftField>(to_check: Vec<GszFieldTriple<F>>) {
         if to_check.len() > 0 {
             let timer = start_timer!(|| format!("Product check: {}", to_check.len()));
-            debug!("Open Field: {} checks", to_check.len());
+            // debug!("Open Field: {} checks", to_check.len());
             let mut xs = Vec::new();
             let mut ys = Vec::new();
             let mut zs = Vec::new();

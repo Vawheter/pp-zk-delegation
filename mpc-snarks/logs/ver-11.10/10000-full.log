@@ -1,0 +1,126 @@
+++ ./scripts/bench.zsh marlin spdz 10000 3
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] Contacting 1
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] Awaiting 0
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] Awaiting 0
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] Contacting 2
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] Contacting 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] Awaiting 1
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 16783488,
+        bytes_recv: 16783488,
+        broadcasts: 66,
+        to_king: 0,
+        from_king: 0,
+    }
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 16783488,
+        bytes_recv: 16783488,
+        broadcasts: 66,
+        to_king: 0,
+        from_king: 0,
+    }
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 16783488,
+        bytes_recv: 16783488,
+        broadcasts: 66,
+        to_king: 0,
+        from_king: 0,
+    }
+14.132s
+48M
+
+
+++ ./scripts/bench.zsh marlin gsz 10000 3
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] Contacting 1
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] Awaiting 0
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] Awaiting 0
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] Contacting 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] Contacting 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] Awaiting 1
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 4200192,
+        bytes_recv: 4199600,
+        broadcasts: 40,
+        to_king: 37,
+        from_king: 37,
+    }
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 2101288,
+        bytes_recv: 2101288,
+        broadcasts: 40,
+        to_king: 37,
+        from_king: 37,
+    }
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 2101288,
+        bytes_recv: 2101288,
+        broadcasts: 40,
+        to_king: 37,
+        from_king: 37,
+    }
+8.448s
+8M
+
+
+
+++ ./scripts/bench.zsh marlin rss3 10000 3
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] Contacting 1
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] Awaiting 0
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] Awaiting 0
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] Contacting 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] Contacting 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] Awaiting 1
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 2100872,
+        bytes_recv: 2100872,
+        broadcasts: 20,
+        to_king: 0,
+        from_king: 0,
+    }
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 2100872,
+        bytes_recv: 2100872,
+        broadcasts: 20,
+        to_king: 0,
+        from_king: 0,
+    }
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 2100872,
+        bytes_recv: 2100872,
+        broadcasts: 20,
+        to_king: 0,
+        from_king: 0,
+    }
+14.474s
+6M
+
+
+
+

@@ -13,7 +13,7 @@ use ark_std::{
 
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize, SerializationError};
 use ark_std::rand::RngCore;
-use log::debug;
+// use log::debug;
 /// `UniversalParams` are the universal parameters for the MarlinPST13 scheme.
 #[derive(Derivative)]
 #[derivative(Default(bound = ""), Clone(bound = ""), Debug(bound = ""))]
@@ -468,9 +468,6 @@ where
     ) -> Self {
         let hiding_poly_degree = Self::calculate_hiding_polynomial_degree(hiding_bound);
         let p = P::rand(hiding_poly_degree, num_vars.unwrap(), rng);
-        debug!("calling PCRandomness rand 1");
-        debug!("\nhiding_poly_degree: {:?}", hiding_poly_degree);
-        debug!("\nblinding_polynomial: {:?}", p);
         Randomness {
             blinding_polynomial: p,
             _engine: PhantomData,

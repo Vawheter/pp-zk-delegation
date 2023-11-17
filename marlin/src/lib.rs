@@ -172,8 +172,6 @@ impl<F: PrimeField, PC: PolynomialCommitment<F, DensePolynomial<F>>, D: Digest> 
         let (mut prover_first_msg, prover_first_oracles, prover_state) =
             AHPForR1CS::prover_first_round(prover_init_state, zk_rng)?;
         prover_first_msg.publicize();
-
-        // debug!("prover_first_msg: {:?}\nprover_first_oracles:{:?}", prover_first_msg, prover_first_oracles);
         
         let first_round_comm_time = start_timer!(|| "Committing to first round polys");
         let (mut first_comms, first_comm_rands) = PC::commit(
@@ -182,7 +180,6 @@ impl<F: PrimeField, PC: PolynomialCommitment<F, DensePolynomial<F>>, D: Digest> 
             Some(zk_rng),
         )
         .map_err(Error::from_pc_err)?;
-        // debug!("first_comms: {:?}", first_comms);
         first_comms.publicize();
         end_timer!(first_round_comm_time);
 

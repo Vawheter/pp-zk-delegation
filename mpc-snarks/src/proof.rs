@@ -289,28 +289,7 @@ mod squarings {
                         <MpcPairingEngine<E, S> as PairingEngine>::Fr,
                         MpcPairingEngine<E, S>,
                     >::prove(&mpc_pk, &plonk_circ_data, zk_rng);
-
                     let reveal_timer = start_timer!(|| "reveal");
-                    // let tmp = pf.clone().public.reveal();//good
-                    // let tmp = pf.clone().gates.reveal();//good
-                    // let tmp = pf.clone().wiring.reveal();//bad
-                    // let tmp = pf.clone().wiring.l2_q_x_open.reveal();//good
-
-                    // let tmp = pf.clone().wiring.l1_x_open.reveal();//bad
-                    // let tmp = pf.clone().wiring.l1_cmt.reveal();//good
-                    // debug!("l1_cmt: {:?}", pf.clone().wiring.l1_cmt);
-                    // debug!("l1_x_open: {:?}", pf.clone().wiring.l1_x_open);//bad
-                    // let tmp = pf.clone().wiring.p_x_open.reveal();//good
-                    // let tmp = pf.clone().wiring.w_x_open.reveal();//good
-                    // let tmp = pf.clone().wiring.l2_q_cmt.reveal();//good
-                    // debug!("wiring: {:?}", pf.clone().wiring);//bad
-                    // let tmp = pf.p_cmt.reveal();//good
-                    // let tmp = pf.clone().wiring.l1_rand.reveal();//good
-                    // debug!("l1_rand: {:?}", pf.clone().wiring.l1_rand);
-
-
-
-
                     let pf = pf.reveal();
                     end_timer!(reveal_timer);
                     pf
@@ -330,9 +309,6 @@ mod squarings {
             .collect();
         let rng = &mut test_rng();
         let chain_shares = MFr::king_share_batch(raw_chain, rng);
-        // chain_shares.clone().into_iter().for_each(|v| {
-        //     debug!("v: {}", v);
-        // });
         RepeatedSquaringCircuit {
             chain: chain_shares.into_iter().map(Some).collect(),
         }

@@ -22,7 +22,7 @@ pub fn check_eq<T: CanonicalSerialize + CanonicalDeserialize + Clone + Eq + Disp
                 false
             }
         } else {
-            debug!("Consistency check");
+            // debug!("Consistency check");
             let others = mpc_net::MpcMultiNet::broadcast(&t);
             let mut result = true;
             for (i, other_t) in others.iter().enumerate() {
@@ -236,7 +236,7 @@ macro_rules! impl_basics_2 {
                 match self {
                     $wrap::Public(x) => x.is_zero(),
                     $wrap::Shared(_x) => {
-                        debug!("Warning: is_zero on shared data. Returning false");
+                        // debug!("Warning: is_zero on shared data. Returning false");
                         false
                     }
                 }

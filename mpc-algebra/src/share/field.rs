@@ -134,13 +134,7 @@ pub trait FieldShare<F: Field>:
 
     fn batch_inv<S: BeaverSource<Self, Self, Self>>(xs: Vec<Self>, source: &mut S) -> Vec<Self> {
         let (bs, cs) = source.inv_pairs(xs.len());
-        // debug!("bs: {:?}", bs);
-        // debug!("cs: {:?}", cs);
-        let mul = Self::batch_mul(xs, bs, source);
-        // debug!("\nmul[0]: {:?}", mul[0]);
-        // debug!("\nmul[1]: {:?}", mul[1]);
-        // mul.clone().into_iter().enumerate().for_each(|(i, v)| debug!("i: {}, mul[i]:{:?}", i, v));
-        let open_mul = Self::batch_open(mul);
+        let open_mul = Self::batch_open(Self::batch_mul(xs, bs, source));
         cs.into_iter()
             .zip(open_mul.into_iter()
                     .map(|i| i.inverse().unwrap()),
