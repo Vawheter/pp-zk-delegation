@@ -208,6 +208,80 @@ mod squarings {
         }
     }
 
+    pub mod marlin_mal {
+        use super::*;
+        use ark_marlin_mal::Marlin;
+        use ark_marlin_mal::*;
+        use ark_poly::univariate::DensePolynomial;
+        use ark_poly_commit::marlin::marlin_pc::MarlinKZG10;
+
+        type KzgMarlin<Fr, E> = Marlin<Fr, MarlinKZG10<E, DensePolynomial<Fr>>, Blake2s>;
+
+        pub struct MarlinMalBench;
+
+        impl SnarkBench for MarlinMalBench {
+
+            fn local<E: PairingEngine>(n: usize, timer_label: &str) {
+                let rng = &mut test_rng();
+                let circ_no_data = RepeatedSquaringCircuit::without_data(n);
+
+                let srs = KzgMarlin::<E::Fr, E>::universal_setup(n, n + 2, 3 * n, rng).unwrap();
+
+                let (pk, vk) = KzgMarlin::<E::Fr, E>::index(&srs, circ_no_data).unwrap();
+
+                let a = E::Fr::rand(rng);
+                let circ_data = RepeatedSquaringCircuit::from_start(a, n);
+                let public_inputs = vec![circ_data.chain.last().unwrap().unwrap()];
+                let timer = start_timer!(|| timer_label);
+                let zk_rng = &mut test_rng();
+                let (proof, _) = KzgMarlin::<E::Fr, E>::prove(&pk, circ_data, zk_rng).unwrap();
+                end_timer!(timer);
+
+                // Consistency Check
+                // assert!(KzgMarlin::<E::Fr, E>::consistency_check(&vk, &public_inputs, &consistency_check_proof, &proof, rng).unwrap());
+
+                assert!(KzgMarlin::<E::Fr, E>::verify(&vk, &public_inputs, &proof, rng).unwrap());
+            }
+
+            fn mpc<E: PairingEngine, S: PairingShare<E>>(n: usize, timer_label: &str) {
+                let rng = &mut test_rng();
+                let circ_no_data = RepeatedSquaringCircuit::without_data(n);
+
+                let srs = KzgMarlin::<E::Fr, E>::universal_setup(n, n + 2, 3 * n, rng).unwrap();
+
+                let (pk, vk) = KzgMarlin::<E::Fr, E>::index(&srs, circ_no_data).unwrap();
+                let mpc_pk = IndexProverKey::from_public(pk);
+
+                let a = E::Fr::rand(rng);
+                let computation_timer = start_timer!(|| "do the mpc (cheat)");
+                let (circ_data, circ_data_with_plain_witness) = mpc_squaring_circuit_with_plain_witness::<
+                    E::Fr,
+                    <MpcPairingEngine<E, S> as PairingEngine>::Fr,
+                >(a, n);
+                let public_inputs = vec![circ_data.chain.last().unwrap().unwrap().reveal()];
+                end_timer!(computation_timer);
+
+                MpcMultiNet::reset_stats();
+                let timer = start_timer!(|| timer_label);
+                let zk_rng = &mut test_rng();
+                let (proof, consistency_check_proof) = channel::without_cheating(|| {
+                    KzgMarlin::<
+                        <MpcPairingEngine<E, S> as PairingEngine>::Fr,
+                        MpcPairingEngine<E, S>,
+                    >::prove(&mpc_pk, circ_data, zk_rng)
+                    .unwrap()
+                    .reveal()
+                });
+                end_timer!(timer);
+
+                // Consistency Check
+                assert!(KzgMarlin::<E::Fr, E>::consistency_check(&vk, &public_inputs, circ_data_with_plain_witness, &consistency_check_proof, &proof, rng).unwrap());
+
+                assert!(KzgMarlin::<E::Fr, E>::verify(&vk, &public_inputs, &proof, rng).unwrap());
+            }
+        }
+    }
+
     pub mod plonk {
         use super::*;
         use ark_poly::univariate::DensePolynomial;
@@ -298,6 +372,26 @@ mod squarings {
                 MarlinPcPlonk::<E::Fr, E>::verify(&vk, &circ_no_data, pf, &public_inputs);
             }
         }
+    }
+
+    fn mpc_squaring_circuit_with_plain_witness<Fr: Field, MFr: Field + Reveal<Base = Fr>>(
+        start: Fr,
+        squarings: usize,
+    ) -> (RepeatedSquaringCircuit<MFr>, RepeatedSquaringCircuit<Fr>) {
+        let raw_chain: Vec<Fr> = std::iter::successors(Some(start), |a| Some(a.square()))
+            .take(squarings + 1)
+            .collect();
+        let rng = &mut test_rng();
+        let chain_shares = MFr::king_share_batch(raw_chain.clone(), rng);
+        let c = RepeatedSquaringCircuit {
+            chain: chain_shares.into_iter().map(Some).collect(),
+        };
+
+        let c_with_plain_witness = RepeatedSquaringCircuit {
+            chain: raw_chain.into_iter().map(Some).collect(),
+        };
+
+        (c, c_with_plain_witness)
     }
 
     fn mpc_squaring_circuit<Fr: Field, MFr: Field + Reveal<Base = Fr>>(

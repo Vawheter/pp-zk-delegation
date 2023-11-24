@@ -37,7 +37,7 @@
 [DEBUG mpc_plonk] commit: l1
 [DEBUG mpc_algebra::share::gsz20::field] Open Field: 98304 checks
 [DEBUG mpc_plonk] commit: t
-[DEBUG mpc_algebra::share::gsz20::field] Open Field: 245761 checks
+[DEBUG mpc_algebr a::share::gsz20::field] Open Field: 245761 checks
 [DEBUG mpc_plonk] commit: q
 [DEBUG mpc_algebra::share::gsz20::field] Open Field: 49152 checks
 [DEBUG mpc_plonk] commit: l2_q

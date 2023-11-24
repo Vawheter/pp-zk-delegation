@@ -124,3 +124,129 @@
 
 
 
+==============================================
+
+
+++ ./scripts/bench.zsh plonk spdz 10000 3
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] Contacting 1
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] Awaiting 0
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] Awaiting 0
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] Contacting 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] Contacting 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] Awaiting 1
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 153106720,
+        bytes_recv: 153106720,
+        broadcasts: 177,
+        to_king: 0,
+        from_king: 0,
+    }
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 153106720,
+        bytes_recv: 153106720,
+        broadcasts: 177,
+        to_king: 0,
+        from_king: 0,
+    }
+60.765s
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 153106720,
+        bytes_recv: 153106720,
+        broadcasts: 177,
+        to_king: 0,
+        from_king: 0,
+    }
+438M
+
+++ BIN=./target/release/proof
+++ ./scripts/bench.zsh plonk gsz 10000 3
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] Contacting 1
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] Awaiting 0
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] Awaiting 0
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] Contacting 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] Contacting 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] Awaiting 1
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 30949104,
+        bytes_recv: 30949104,
+        broadcasts: 146,
+        to_king: 198,
+        from_king: 198,
+    }
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 49308480,
+        bytes_recv: 49305312,
+        broadcasts: 146,
+        to_king: 198,
+        from_king: 198,
+    }
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 30949104,
+        bytes_recv: 30949104,
+        broadcasts: 146,
+        to_king: 198,
+        from_king: 198,
+    }
+32.850s
+106M
+
+
+++ BIN=./target/release/proof
+++ ./scripts/bench.zsh plonk rss3 10000 3
+++ ./scripts/bench.zsh plonk rss3 10000 3
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] Contacting 1
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] Awaiting 0
+[DEBUG mpc_net::multi] 0 to 1
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] Awaiting 0
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] Contacting 2
+[DEBUG mpc_net::multi] 0 to 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] Contacting 2
+[DEBUG mpc_net::multi] 1 to 2
+[DEBUG mpc_net::multi] Awaiting 1
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 38018008,
+        bytes_recv: 38018008,
+        broadcasts: 41,
+        to_king: 0,
+        from_king: 0,
+    }
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 38018008,
+        bytes_recv: 38018008,
+        broadcasts: 41,
+        to_king: 0,
+        from_king: 0,
+    }
+55.530s
+[DEBUG proof] Stats: Stats {
+        bytes_sent: 38018008,
+        bytes_recv: 38018008,
+        broadcasts: 41,
+        to_king: 0,
+        from_king: 0,
+    }
+108M
