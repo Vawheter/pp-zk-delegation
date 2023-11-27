@@ -513,6 +513,7 @@ arg_enum! {
         Groth16,
         Marlin,
         Plonk,
+        Marlin_Mal,
     }
 }
 
@@ -605,6 +606,12 @@ fn main() {
             opt.computation,
             opt.computation_size,
             squarings::marlin::MarlinBench,
+            TIMED_SECTION_LABEL,
+        ),
+        ProofSystem::Marlin_Mal => opt.field.run::<ark_bls12_377::Bls12_377, _>(
+            opt.computation,
+            opt.computation_size,
+            squarings::marlin_mal::MarlinMalBench,
             TIMED_SECTION_LABEL,
         ),
     }
