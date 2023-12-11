@@ -34,6 +34,8 @@ use crate::Reveal;
 use log::debug;
 use crate::wire::DummyFieldTripleSource;
 
+use super::add::{AdditiveFieldShare, AdditiveGroupShare};
+
 #[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct RSS3FieldShare<T> {
     pub val0: T,
@@ -102,6 +104,16 @@ impl<F: Field> RSS3FieldShare<F> {
                 val1: p1_coeffs[i],
             }
         }).collect() 
+    }
+
+    fn convert_to_ass(self, dealer_id: usize) -> AdditiveFieldShare<F> {
+        let id1 = (dealer_id + 2) % 3;
+        let id2 = (dealer_id + 1) % 3;
+        match Net::party_id() {
+            pre_id => AdditiveFieldShare { val: self.val0 + self.val1},
+            next_id => AdditiveFieldShare { val: self.val1 },
+            _ => AdditiveFieldShare { val: F::zero()},
+        }
     }
 }
 

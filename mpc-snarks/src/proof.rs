@@ -264,6 +264,7 @@ mod squarings {
                 MpcMultiNet::reset_stats();
                 let timer = start_timer!(|| timer_label);
                 let zk_rng = &mut test_rng();
+                let zk_rng2 = &mut test_rng();
                 let (proof, consistency_check_proof) = channel::without_cheating(|| {
                     KzgMarlin::<
                         <MpcPairingEngine<E, S> as PairingEngine>::Fr,
@@ -275,7 +276,7 @@ mod squarings {
                 end_timer!(timer);
 
                 // Consistency Check
-                assert!(KzgMarlin::<E::Fr, E>::consistency_check(&vk, &public_inputs, circ_data_with_plain_witness, &consistency_check_proof, &proof, rng).unwrap());
+                assert!(KzgMarlin::<E::Fr, E>::consistency_check(&vk, &public_inputs, circ_data_with_plain_witness, &consistency_check_proof, &proof, zk_rng2).unwrap());
 
                 assert!(KzgMarlin::<E::Fr, E>::verify(&vk, &public_inputs, &proof, rng).unwrap());
             }

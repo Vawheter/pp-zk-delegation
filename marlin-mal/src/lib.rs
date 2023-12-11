@@ -19,7 +19,7 @@
 extern crate ark_std;
 
 use ark_ff::{to_bytes, PrimeField, UniformRand};
-use ark_poly::{Polynomial, univariate::DensePolynomial, EvaluationDomain, GeneralEvaluationDomain, Evaluations as EvaluationsOnDomain};
+use ark_poly::{Polynomial, UVPolynomial, univariate::DensePolynomial, EvaluationDomain, GeneralEvaluationDomain, Evaluations as EvaluationsOnDomain};
 use ark_poly_commit::Evaluations;
 use ark_poly_commit::{LabeledCommitment, PCUniversalParams, PolynomialCommitment};
 use ark_std::rand::RngCore;
@@ -188,23 +188,20 @@ impl<F: PrimeField, PC: PolynomialCommitment<F, DensePolynomial<F>>, D: Digest> 
             Some(zk_rng),
         )
         .map_err(Error::from_pc_err)?;
+
+        // Rss Reconstrction Consistency Check of first_comms
         first_comms.publicize();
+
         end_timer!(first_round_comm_time);
 
         let t = start_timer!(|| "FS absorb first round polys");
         fs_rng.absorb(&to_bytes![first_comms, prover_first_msg].unwrap());
         end_timer!(t);
 
-        let t = start_timer!(|| "first round ver");
-        let (verifier_first_msg, verifier_state) =
-            AHPForR1CS::verifier_first_round(index_pk.index_vk.index_info, &mut fs_rng)?;
-        end_timer!(t);
-        // --------------------------------------------------------------------
-
-
         // --------------------------------------------------------------------
         // Consistency check after the first round
         let s = F::pub_rand(&mut fs_rng);
+        // debug!("s in prover: {:?}\n", s);
         let eval_proof = PC::open(
             &index_pk.committer_key,
             &[prover_first_oracles.w.clone()],
@@ -219,6 +216,13 @@ impl<F: PrimeField, PC: PolynomialCommitment<F, DensePolynomial<F>>, D: Digest> 
             w_at_s,
             eval_proof,
         };
+        // --------------------------------------------------------------------
+
+
+        let t = start_timer!(|| "first round ver");
+        let (verifier_first_msg, verifier_state) =
+            AHPForR1CS::verifier_first_round(index_pk.index_vk.index_info, &mut fs_rng)?;
+        end_timer!(t);
         // --------------------------------------------------------------------
 
 
@@ -388,6 +392,8 @@ impl<F: PrimeField, PC: PolynomialCommitment<F, DensePolynomial<F>>, D: Digest> 
         let first_comms = &proof.commitments[0];
         fs_rng.absorb(&to_bytes![first_comms, proof.prover_messages[0]].unwrap());
 
+        let _ = F::pub_rand(&mut fs_rng);
+
         let (_, verifier_state) =
             AHPForR1CS::verifier_first_round(index_vk.index_info, &mut fs_rng)?;
         // --------------------------------------------------------------------
@@ -501,34 +507,22 @@ impl<F: PrimeField, PC: PolynomialCommitment<F, DensePolynomial<F>>, D: Digest> 
 
             unpadded_input
         };
-
         let mut fs_rng = FiatShamirRng::<D>::from_seed(
             &to_bytes![&Self::PROTOCOL_NAME, &index_vk, &public_input].unwrap(),
         );
-
 
         // Check proof
         let first_comms = &proof.commitments[0];
         fs_rng.absorb(&to_bytes![first_comms, proof.prover_messages[0]].unwrap());
 
         let s = F::pub_rand(&mut fs_rng);
+        // debug!("s in checker: {:?}\n", s);
 
         let index_info = index_vk.index_info;
         let degree_bound: Option<usize> = AHPForR1CS::prover_first_round_degree_bounds(&index_info).collect::<Vec<Option<usize>>>()[0];
 
         let label: String = AHPForR1CS::<F>::polynomial_labels().collect::<Vec<String>>()[0].clone();
         let commitment = LabeledCommitment::new(label, first_comms[0].clone(), degree_bound);
-           
-        let proof_passed = PC::check(
-            &index_vk.verifier_key,
-            &[commitment],
-            &s,
-            [consistency_check_proof.w_at_s],
-            &consistency_check_proof.eval_proof,
-            F::one(), // Okay b/c a single commit
-            Some(rng),
-        ).map_err(Error::from_pc_err)?;
-
 
         // Check evaluation
 
@@ -545,7 +539,7 @@ impl<F: PrimeField, PC: PolynomialCommitment<F, DensePolynomial<F>>, D: Digest> 
         make_matrices_square_for_prover(pcs.clone());
         end_timer!(padding_time);
 
-        let (_, witness_assignment, num_constraints) = {
+        let (formatted_input_assignment, mut witness_assignment, num_constraints) = {
             let pcs = pcs.borrow().unwrap();
             (
                 pcs.instance_assignment.as_slice().to_vec(),
@@ -554,22 +548,76 @@ impl<F: PrimeField, PC: PolynomialCommitment<F, DensePolynomial<F>>, D: Digest> 
             )
         };
 
-        let domain_h = GeneralEvaluationDomain::new(num_constraints).unwrap();
+        let num_input_variables = formatted_input_assignment.len();
 
-        let w_poly = &EvaluationsOnDomain::from_vec_and_domain(witness_assignment, domain_h).interpolate();
+        let domain_h = GeneralEvaluationDomain::new(num_constraints).unwrap();
+        let domain_x = GeneralEvaluationDomain::new(num_input_variables).unwrap();
+
+        let x_time = start_timer!(|| "Computing x polynomial and evals");
+        let x_poly = EvaluationsOnDomain::from_vec_and_domain(
+            formatted_input_assignment.clone(),
+            domain_x,
+        )
+        .interpolate();
+        let x_evals = domain_h.fft(&x_poly);
+        end_timer!(x_time);
+
+        let ratio = domain_h.size() / domain_x.size();
+
+        let num_witness_variables = witness_assignment.len();
+        witness_assignment.extend(vec![
+            F::zero(); 
+            domain_h.size()- domain_x.size() - num_witness_variables
+        ]);
+
+        let w_poly_time = start_timer!(|| "Computing w polynomial");
+        let w_poly_evals: Vec<F> = cfg_into_iter!(0..domain_h.size())
+            .map(|k| {
+                if k % ratio == 0 {
+                    F::zero()
+                } else {
+                    witness_assignment[k - (k / ratio) - 1] - &x_evals[k]
+                }
+            })
+            .collect();
+
+        let v_H: DensePolynomial<F> = domain_h.vanishing_polynomial().into();
+
+        let mut rand_poly = &DensePolynomial::from_coefficients_slice(&[F::rand(rng)]) * &v_H;
+        // debug!("rand_poly in checker 1: {:?}\n", rand_poly);
+        // rand_poly.publicize();
+        rand_poly = rand_poly.clone() + rand_poly.clone() + rand_poly.clone();
+
+        // debug!("rand_poly in checker 2: {:?}\n", rand_poly);
+        // debug!("witness_assignment: {:?}\n", witness_assignment);
+
+        let w_poly = &EvaluationsOnDomain::from_vec_and_domain(w_poly_evals, domain_h).interpolate() + &rand_poly; 
+
+        let (w_poly, _) = w_poly.divide_by_vanishing_poly(domain_x).unwrap();
+        end_timer!(w_poly_time);
+
+        // debug!("w_poly in checker: {:?}\n", w_poly);
 
         let w_at_s_local = w_poly.evaluate(&s);
         if consistency_check_proof.w_at_s != w_at_s_local {
-            eprintln!("PC:: Evaluation Consistency Checked failed");
+            eprintln!("Evaluations are not consistent");
         }
 
+        let proof_passed = PC::check(
+            &index_vk.verifier_key,
+            &[commitment],
+            &s,
+            [consistency_check_proof.w_at_s],
+            &consistency_check_proof.eval_proof,
+            F::one(), // Okay b/c a single commit
+            Some(rng),
+        ).map_err(Error::from_pc_err)?;
+
         if !proof_passed {
-            eprintln!("PC:: Proof Check failed");
+            eprintln!("PC:: Proof check failed");
         }
-        end_timer!(verifier_time, || format!(
-            " PC:: Check for Consistency: {}",
-            proof_passed
-        ));
+
+        end_timer!(verifier_time);
         Ok(proof_passed)
     }
 }

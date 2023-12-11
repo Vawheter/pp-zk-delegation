@@ -52,7 +52,7 @@ case $infra in
           #$BIN $i ./data/4 &
           if [ $i -eq 0 ]
           then
-            RUST_LOG=debug $BIN -p $proof -c squaring --computation-size $size mpc --hosts $NETWORK_CONFIG --party $i --alg $infra | rg "End: *$LABEL" | rg -o '[0-9][0-9.]*.s' &
+            RUST_LOG=debug RUST_BACKTRACE=1 $BIN -p $proof -c squaring --computation-size $size mpc --hosts $NETWORK_CONFIG --party $i --alg $infra | rg "End: *$LABEL" | rg -o '[0-9][0-9.]*.s' &
             pid=$!
           else
             RUST_LOG=debug $BIN -p $proof -c squaring --computation-size $size mpc --hosts $NETWORK_CONFIG --party $i --alg $infra > /dev/null &
