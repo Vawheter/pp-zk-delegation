@@ -353,26 +353,10 @@ impl<F: PrimeField> AHPForR1CS<F> {
             })
             .collect();
 
-        let rand_poly = &DensePolynomial::from_coefficients_slice(&[F::rand(rng)]) * &v_H; // should be public
-        // debug!("rand_poly in prover: {:?}\n", rand_poly);
-        // let mut r2 = rand_poly.clone();
-        // r2.publicize();
-        // rand_poly.publicize();
-
-        // debug!("pub rand_poly: {:?}\n", r2);
-        // debug!("w_poly_evals: {:?}\n", w_poly_evals);
-
-        let w_poly = EvaluationsOnDomain::from_vec_and_domain(w_poly_evals, domain_h)
-            .interpolate();
-        let w_poly = &(w_poly + rand_poly);
-        // debug!("w_poly in checker: {:?}\n", w_poly);
+        let w_poly = &EvaluationsOnDomain::from_vec_and_domain(w_poly_evals, domain_h).interpolate() + &(&DensePolynomial::from_coefficients_slice(&[F::rand(rng)]) * &v_H);
 
         let (w_poly, _remainder) = w_poly.divide_by_vanishing_poly(domain_x).unwrap();
         end_timer!(w_poly_time);
-
-        // let mut w2 = w_poly.clone();
-        // w2.publicize();
-        // debug!("w_poly in prover: {:?}\n", w2);
 
         let z_a_poly_time = start_timer!(|| "Computing z_A polynomial");
         let z_a = state.z_a.clone().unwrap();

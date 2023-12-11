@@ -201,7 +201,6 @@ impl<F: PrimeField, PC: PolynomialCommitment<F, DensePolynomial<F>>, D: Digest> 
         // --------------------------------------------------------------------
         // Consistency check after the first round
         let s = F::pub_rand(&mut fs_rng);
-        // debug!("s in prover: {:?}\n", s);
         let eval_proof = PC::open(
             &index_pk.committer_key,
             &[prover_first_oracles.w.clone()],
@@ -516,7 +515,6 @@ impl<F: PrimeField, PC: PolynomialCommitment<F, DensePolynomial<F>>, D: Digest> 
         fs_rng.absorb(&to_bytes![first_comms, proof.prover_messages[0]].unwrap());
 
         let s = F::pub_rand(&mut fs_rng);
-        // debug!("s in checker: {:?}\n", s);
 
         let index_info = index_vk.index_info;
         let degree_bound: Option<usize> = AHPForR1CS::prover_first_round_degree_bounds(&index_info).collect::<Vec<Option<usize>>>()[0];
@@ -584,19 +582,13 @@ impl<F: PrimeField, PC: PolynomialCommitment<F, DensePolynomial<F>>, D: Digest> 
         let v_H: DensePolynomial<F> = domain_h.vanishing_polynomial().into();
 
         let mut rand_poly = &DensePolynomial::from_coefficients_slice(&[F::rand(rng)]) * &v_H;
-        // debug!("rand_poly in checker 1: {:?}\n", rand_poly);
-        // rand_poly.publicize();
-        rand_poly = rand_poly.clone() + rand_poly.clone() + rand_poly.clone();
 
-        // debug!("rand_poly in checker 2: {:?}\n", rand_poly);
-        // debug!("witness_assignment: {:?}\n", witness_assignment);
+        rand_poly = rand_poly.clone() + rand_poly.clone() + rand_poly.clone();
 
         let w_poly = &EvaluationsOnDomain::from_vec_and_domain(w_poly_evals, domain_h).interpolate() + &rand_poly; 
 
         let (w_poly, _) = w_poly.divide_by_vanishing_poly(domain_x).unwrap();
         end_timer!(w_poly_time);
-
-        // debug!("w_poly in checker: {:?}\n", w_poly);
 
         let w_at_s_local = w_poly.evaluate(&s);
         if consistency_check_proof.w_at_s != w_at_s_local {

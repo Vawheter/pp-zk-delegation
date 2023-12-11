@@ -23,6 +23,7 @@ use super::super::share::BeaverSource;
 use super::field::MpcField;
 use mpc_net::{MpcNet, MpcMultiNet as Net};
 use crate::Reveal;
+use ark_std::test_rng;
 
 #[derive(Clone, Copy, Hash, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum MpcGroup<G: Group, S: GroupShare<G>> {
@@ -68,6 +69,60 @@ impl<T: Group, S: GroupShare<T>> BeaverSource<S, S::FieldShare, S>
                 T::ScalarField::zero()
             }),
         )
+    }
+}
+
+#[derive(Derivative)]
+#[derivative(Default(bound = ""), Clone(bound = ""), Copy(bound = ""))]
+pub struct DealerGroupTripleSource<T, S> {
+    _scalar: PhantomData<T>,
+    _share: PhantomData<S>,
+}
+impl<T: Group, S: GroupShare<T>> BeaverSource<S, S::FieldShare, S>
+    for DealerGroupTripleSource<T, S>
+{
+    #[inline]
+    fn triples(&mut self, n: usize) -> (Vec<S>, Vec<S::FieldShare>, Vec<S>) {
+        let rng = &mut test_rng();
+        let mut xs = Vec::new();
+        let mut ys = Vec::new();
+        let mut zs = Vec::new();
+        for _ in 0..n {
+            let x = T::rand(rng);
+            let y = T::ScalarField::rand(rng);
+            let mut z = x;
+            z *= y;
+            xs.push(x);
+            ys.push(y);
+            zs.push(z);
+        }
+        (S::king_share_batch(xs, rng), S::FieldShare::king_share_batch(ys, rng), S::king_share_batch(zs, rng),)
+    }
+    #[inline]
+    fn triple(&mut self) -> (S, S::FieldShare, S) {
+        let rng = &mut test_rng();
+        let mut x = T::zero();
+        let mut y = T::ScalarField::zero();
+        let mut z = T::zero();
+        if Net::am_king() {
+            x = T::rand(rng);
+            y = T::ScalarField::rand(rng);
+            z = x;
+            z *= y;
+        }
+        (S::king_share(x, rng), S::FieldShare::king_share(y, rng), S::king_share(z, rng),)
+    }
+
+    #[inline]
+    fn inv_pair(&mut self) -> (S::FieldShare, S::FieldShare) {
+        let rng = &mut test_rng();
+        let mut x = T::ScalarField::zero();
+        let mut inv_x = T::ScalarField::zero();
+        if Net::am_king() {
+            x = T::ScalarField::rand(rng);
+            inv_x = x.inverse().unwrap();
+        }
+        (S::FieldShare::king_share(x, rng), S::FieldShare::king_share(inv_x, rng))
     }
 }
 

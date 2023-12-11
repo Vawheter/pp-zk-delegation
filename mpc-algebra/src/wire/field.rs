@@ -22,6 +22,7 @@ use super::super::share::field::FieldShare;
 use super::super::share::BeaverSource;
 use crate::Reveal;
 use mpc_net::{MpcNet, MpcMultiNet as Net};
+use ark_std::test_rng;
 
 #[derive(Clone, Copy, Hash, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum MpcField<F: Field, S: FieldShare<F>> {
@@ -75,6 +76,62 @@ impl<T: Field, S: FieldShare<T>> BeaverSource<S, S, S> for DummyFieldTripleSourc
         )
     }
 }
+
+
+
+#[derive(Derivative)]
+#[derivative(Default(bound = ""), Clone(bound = ""), Copy(bound = ""))]
+pub struct DealerFieldTripleSource<T, S> {
+    // dealer_id: usize, // Let King be the dealer
+    _scalar: PhantomData<T>,
+    _share: PhantomData<S>,
+}
+
+impl<T: Field, S: FieldShare<T>> BeaverSource<S, S, S> for DealerFieldTripleSource<T, S> {
+    #[inline]
+    fn triples(&mut self, n: usize) -> (Vec<S>, Vec<S>, Vec<S>) {
+        let rng = &mut test_rng();
+        let mut xs = Vec::new();
+        let mut ys = Vec::new();
+        let mut zs = Vec::new();
+        if Net::am_king() { 
+            for _ in 0..n {
+                let x = T::rand(rng);
+                let y = T::rand(rng);
+                let z = x * y;
+                xs.push(x);
+                ys.push(y);
+                zs.push(z);
+            }
+        }
+        (S::king_share_batch(xs, rng), S::king_share_batch(ys, rng), S::king_share_batch(zs, rng))
+    }
+    #[inline]
+    fn triple(&mut self) -> (S, S, S) {
+        let rng = &mut test_rng();
+        let mut x = T::zero();
+        let mut y = T::zero();
+        let mut z = T::zero();
+        if Net::am_king() {
+            x = T::rand(rng);
+            y = T::rand(rng);
+            z = x * y;
+        }
+        (S::king_share(x, rng), S::king_share(y, rng), S::king_share(z, rng))
+    }
+    #[inline]
+    fn inv_pair(&mut self) -> (S, S) {
+        let rng = &mut test_rng();
+        let mut x = T::zero();
+        let mut inv_x = T::zero();
+        if Net::am_king() {
+            let x = T::rand(rng);
+            let inv_x = x.inverse().unwrap();
+        }
+        (S::king_share(x, rng), S::king_share(inv_x, rng))
+    }
+}
+
 
 impl<T: Field, S: FieldShare<T>> MpcField<T, S> {
     #[inline]
