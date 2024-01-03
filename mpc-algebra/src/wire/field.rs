@@ -23,9 +23,13 @@ use super::super::share::BeaverSource;
 use crate::Reveal;
 use mpc_net::{MpcNet, MpcMultiNet as Net};
 use ark_std::test_rng;
+use crate::share::{
+    AdditiveFieldShare,
+    ShareConversion,
+};
 
 #[derive(Clone, Copy, Hash, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub enum MpcField<F: Field, S: FieldShare<F>> {
+pub enum MpcField<F: Field, S: FieldShare<F> + ShareConversion<Target = AdditiveFieldShare<F>>> {
     Public(F),
     Shared(S),
 }
@@ -344,6 +348,19 @@ impl<T: Field, S: FieldShare<T>> Reveal for MpcField<T, S> {
     }
 }
 
+
+impl<T: Field, S: FieldShare<T> + ShareConversion<Target = AdditiveFieldShare<T>>> ShareConversion for MpcField<T, S> {
+    type Target = MpcField<T, AdditiveFieldShare<T>>;
+    #[inline]
+    fn share_conversion(self) -> Self::Target {
+        let result = match self {
+            Self::Public(s) => Self::Target::Public(s), 
+            Self::Shared(s) => Self::Target::Shared(s.share_conversion()),
+        };
+        result
+    }
+}
+
 from_prim!(bool, Field, FieldShare, MpcField);
 from_prim!(u8, Field, FieldShare, MpcField);
 from_prim!(u16, Field, FieldShare, MpcField);
@@ -603,6 +620,7 @@ impl<F: PrimeField, S: FieldShare<F>> SquareRootField for MpcField<F, S> {
 
 mod poly_impl {
 
+    use crate::struct_share_conversion_simp_impl;
     use crate::share::*;
     use crate::wire::*;
     use crate::Reveal;
@@ -640,4 +658,22 @@ mod poly_impl {
             )
         }
     }
+
+    impl<F: PrimeField, S: FieldShare<F>> ShareConversion for DensePolynomial<MpcField<F, S>> {
+        type Target = DensePolynomial<MpcField<F, AdditiveFieldShare<F>>>;
+        
+        struct_share_conversion_simp_impl!(DensePolynomial; coeffs);
+    }
+
+
+    // impl<F: PrimeField, S: FieldShare<F>> ShareConversion for Evaluations<MpcField<F, S>> {
+    //     type Target = Evaluations<AdditiveFieldShare<F>>;
+
+    //     fn share_conversion(self) -> Self::Target {
+    //         Evaluations::from_vec_and_domain(
+    //             self.evals.share_conversion(),
+    //             GeneralEvaluationDomain::new(self.domain.size()).unwrap(),
+    //         )
+    //     }
+    // }
 }

@@ -8,7 +8,7 @@ LABEL="timed section"
 
 
 function usage {
-  echo "Usage: $0 {groth16,marlin,plonk,marlin_mal} {mpc,local,ark-local} N_SQUARINGS" >&2
+  echo "Usage: $0 {groth16,marlin,plonk,marlin_mal,marlin_mal_rss_check} {mpc,local,ark-local} N_SQUARINGS" >&2
   exit 1
 }
 
@@ -17,7 +17,7 @@ if [ "$#" -ne 3 ] ; then
 fi
 
 case $proof in
-    groth16|marlin|plonk|marlin_mal)
+    groth16|marlin|plonk|marlin_mal|marlin_mal_rss_check)
         ;;
     *)
         usage

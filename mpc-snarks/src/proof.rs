@@ -283,6 +283,118 @@ mod squarings {
         }
     }
 
+
+    pub mod marlin_mal_rss_check {
+        use super::*;
+        use ark_marlin_mal_rss_check::Marlin;
+        use ark_marlin_mal_rss_check::*;
+        use ark_poly::univariate::DensePolynomial;
+        use ark_poly_commit::marlin::marlin_pc::MarlinKZG10;
+        use mpc_algebra::share::rss3::RSS3PairingShare;
+        use mpc_algebra::share::add::AdditivePairingShare;
+
+        type KzgMarlin<Fr, E> = Marlin<Fr, MarlinKZG10<E, DensePolynomial<Fr>>, Blake2s>;
+
+        type AssFr<E> = <MpcPairingEngine<E, AdditivePairingShare<E>> as PairingEngine>::Fr;
+        type RssFr<E> = <MpcPairingEngine<E, RSS3PairingShare<E>> as PairingEngine>::Fr;
+
+        pub struct MarlinMalRssCheckBench;
+
+        // impl MarlinMalRssCheckBench {
+        //     fn share_conversion(InterData: InterData)-> InterData {
+        //         InterData.prover_first_oracles.
+                
+        //     }
+            
+        // }
+
+        // type MFr<E> = <MpcPairingEngine<E, AdditivePairingShare<E>> as PairingEngine>::Fr;
+
+        // fn convert_to_ass<'a, F: PrimeField, PC: PolynomialCommitment<F, DensePolynomial<F>>, D: Digest, E>(
+        //     InterData: InterData<'a, F, PC, D>, 
+        //     dealer_id: usize,
+        // ) -> InterData<MFr<E>, PolynomialCommitment<MFr<E>, DensePolynomial<MFr<E>>>, D> {
+        //     let pre_id = (dealer_id + 2) % 3;
+        //     let next_id = (dealer_id + 1) % 3;
+        //     let len = xs.len();
+        //     match Net::party_id() {
+        //         pre_id => xs.into_iter().map(|x|
+        //             AdditiveFieldShare { val: x.val0 + x.val1 }
+        //         ).collect(), 
+        //         next_id => xs.into_iter().map(|x|
+        //             AdditiveFieldShare { val: x.val1 }
+        //         ).collect(), 
+        //         _ => vec![AdditiveFieldShare { val: F::zero() }; len],
+        //     }
+        // }
+
+        impl SnarkBench for MarlinMalRssCheckBench {
+            fn local<E: PairingEngine>(n: usize, timer_label: &str) {
+                let rng = &mut test_rng();
+                let circ_no_data = RepeatedSquaringCircuit::without_data(n);
+
+                let srs = KzgMarlin::<E::Fr, E>::universal_setup(n, n + 2, 3 * n, rng).unwrap();
+
+                let (pk, vk) = KzgMarlin::<E::Fr, E>::index(&srs, circ_no_data).unwrap();
+
+                let a = E::Fr::rand(rng);
+                let circ_data = RepeatedSquaringCircuit::from_start(a, n);
+                let public_inputs = vec![circ_data.chain.last().unwrap().unwrap()];
+                let timer = start_timer!(|| timer_label);
+                let zk_rng = &mut test_rng();
+                let proof = KzgMarlin::<E::Fr, E>::prove(&pk, circ_data, zk_rng).unwrap();
+                end_timer!(timer);
+                assert!(KzgMarlin::<E::Fr, E>::verify(&vk, &public_inputs, &proof, rng).unwrap());
+            }
+
+            fn mpc<E: PairingEngine, S: PairingShare<E>>(n: usize, timer_label: &str) {
+                let rng = &mut test_rng();
+                let circ_no_data = RepeatedSquaringCircuit::without_data(n);
+
+                let srs = KzgMarlin::<E::Fr, E>::universal_setup(n, n + 2, 3 * n, rng).unwrap();
+
+                let (pk, vk) = KzgMarlin::<E::Fr, E>::index(&srs, circ_no_data).unwrap();
+                let mpc_pk = IndexProverKey::from_public(pk);
+
+                let a = E::Fr::rand(rng);
+                let computation_timer = start_timer!(|| "do the mpc (cheat)");
+                let circ_data = mpc_squaring_circuit::<
+                    E::Fr,
+                    <MpcPairingEngine<E, S> as PairingEngine>::Fr,
+                >(a, n);
+                let public_inputs = vec![circ_data.chain.last().unwrap().unwrap().reveal()];
+                end_timer!(computation_timer);
+
+                let InterData = channel::without_cheating(|| {
+                    KzgMarlin::<
+                        <MpcPairingEngine<E, RSS3PairingShare<E>> as PairingEngine>::Fr,
+                        MpcPairingEngine<E, RSS3PairingShare<E>>,
+                    >::prove_first_phase(&mpc_pk, circ_data, zk_rng)
+                    .unwrap()
+                });
+
+                
+
+                
+
+                let prove_second_phase_result = channel::without_cheating(|| {
+                    KzgMarlin::<
+                        <MpcPairingEngine<E, AdditivePairingShare<E>> as PairingEngine>::Fr,
+                        MpcPairingEngine<E, AdditivePairingShare<E>>,
+                    >::prove_second_phase(&mpc_pk, InterData, zk_rng)
+                    .unwrap()
+                    .reveal()
+                });
+
+
+                end_timer!(timer);
+                assert!(KzgMarlin::<E::Fr, E>::verify(&vk, &public_inputs, &proof, rng).unwrap());
+            }
+        }
+    }
+
+
+
     pub mod plonk {
         use super::*;
         use ark_poly::univariate::DensePolynomial;
@@ -515,6 +627,7 @@ arg_enum! {
         Marlin,
         Plonk,
         Marlin_Mal,
+        Marlin_Mal_Rss_Check
     }
 }
 
@@ -613,6 +726,12 @@ fn main() {
             opt.computation,
             opt.computation_size,
             squarings::marlin_mal::MarlinMalBench,
+            TIMED_SECTION_LABEL,
+        ),
+        ProofSystem::Marlin_Mal_Rss_Check => opt.field.run::<ark_bls12_377::Bls12_377, _>(
+            opt.computation,
+            opt.computation_size,
+            squarings::marlin_mal_rss_check::MarlinMalRssCheckBench,
             TIMED_SECTION_LABEL,
         ),
     }

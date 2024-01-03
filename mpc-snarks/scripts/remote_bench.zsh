@@ -17,7 +17,7 @@ LABEL="timed section"
 
 
 function usage {
-  echo "Usage: $0 {groth16,marlin,plonk,marlin_mal} {hbc,spdz,gsz,rss3,local,ark-local} N_SQUARINGS HOSTSFILE PARTY_ID" >&2
+  echo "Usage: $0 {groth16,marlin,plonk,marlin_mal,marlin_mal_rss_check} {hbc,spdz,gsz,rss3,local,ark-local} N_SQUARINGS HOSTSFILE PARTY_ID" >&2
   exit 1
 }
 
@@ -28,7 +28,7 @@ fi
 sleep 1
 
 case $proof in
-    groth16|marlin|plonk|marlin_mal)
+    groth16|marlin|plonk|marlin_mal|marlin_mal_rss_check)
         ;;
     *)
         usage

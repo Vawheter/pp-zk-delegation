@@ -56,6 +56,7 @@ pub mod marlin;
 pub mod optional_rng;
 
 pub mod reveal;
+pub mod share_conversion;
 
 #[cfg(not(feature = "std"))]
 macro_rules! eprintln {
