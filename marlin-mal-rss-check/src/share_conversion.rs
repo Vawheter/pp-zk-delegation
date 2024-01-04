@@ -16,7 +16,7 @@ use crate::ahp::prover::*;
 use ark_poly::EvaluationDomain;
 use ark_std::{end_timer, start_timer};
 
-impl<F: PrimeField, S: FieldShare<F>> ShareConversion for ProverMsg<MpcField<F, S>> {
+impl<F: PrimeField> ShareConversion for ProverMsg<MpcField<F, RSS3FieldShare<F>>> {
     type Traget = ProverMsg<AdditiveFieldShare<F>>;
 
     fn share_conversion(self) -> Self::Target {
@@ -28,12 +28,12 @@ impl<F: PrimeField, S: FieldShare<F>> ShareConversion for ProverMsg<MpcField<F, 
 }
 
 
-impl<E: PairingEngine, S: PairingShare<E>> ShareConversion
+impl<E: PairingEngine> ShareConversion
     for Proof<
-        <MpcPairingEngine<E, S> as PairingEngine>::Fr,
+        <MpcPairingEngine<E, RSS3PairingShare> as PairingEngine>::Fr,
         MarlinKZG10<
-            MpcPairingEngine<E, S>,
-            DensePolynomial<<MpcPairingEngine<E, S> as PairingEngine>::Fr>,
+            MpcPairingEngine<E, RSS3PairingShare>,
+            DensePolynomial<<MpcPairingEngine<E, RSS3PairingShare> as PairingEngine>::Fr>,
         >,
     >
 {
@@ -42,7 +42,7 @@ impl<E: PairingEngine, S: PairingShare<E>> ShareConversion
     struct_share_conversion_simp_impl!(Proof; commitments, evaluations, prover_messages, pc_proof);
 }
 
-impl<F: PrimeField, S: FieldShare<F>> ShareConversion for ahp::indexer::IndexInfo<MpcField<F, S>> {
+impl<F: PrimeField> ShareConversion for ahp::indexer::IndexInfo<MpcField<F, RSS3FieldShare<F>>> {
     type Target = ahp::indexer::IndexInfo<AdditiveFieldShare<F>>;
     struct_share_conversion_simp_impl!(ahp::indexer::IndexInfo;
         num_variables,
@@ -53,12 +53,12 @@ impl<F: PrimeField, S: FieldShare<F>> ShareConversion for ahp::indexer::IndexInf
     );
 }
 
-impl<E: PairingEngine, S: PairingShare<E>> ShareConversion
+impl<E: PairingEngine> ShareConversion
     for IndexVerifierKey<
-        <MpcPairingEngine<E, S> as PairingEngine>::Fr,
+        <MpcPairingEngine<E, RSS3PairingShare> as PairingEngine>::Fr,
         MarlinKZG10<
-            MpcPairingEngine<E, S>,
-            DensePolynomial<<MpcPairingEngine<E, S> as PairingEngine>::Fr>,
+            MpcPairingEngine<E, RSS3PairingShare>,
+            DensePolynomial<<MpcPairingEngine<E, RSS3PairingShare> as PairingEngine>::Fr>,
         >,
     >
 {
@@ -69,29 +69,29 @@ impl<E: PairingEngine, S: PairingShare<E>> ShareConversion
     struct_share_conversion_simp_impl!(IndexVerifierKey; index_comms, verifier_key, index_info);
 }
 
-impl<E: PrimeField, S: FieldShare<E>> ShareConversion for ahp::indexer::Index<MpcField<E, S>> {
+impl<E: PrimeField> ShareConversion for ahp::indexer::Index<MpcField<E, RSS3FieldShare>> {
     type Target = ahp::indexer::Index<<MpcPairingEngine<E, AdditiveFieldShare> as PairingEngine>>;
     struct_share_conversion_simp_impl!(ahp::indexer::Index; index_info, a, b, c, a_star_arith, b_star_arith, c_star_arith);
 }
 
-impl<E: PrimeField, S: FieldShare<E>> ShareConversion
-    for ahp::constraint_systems::MatrixEvals<MpcField<E, S>>
+impl<E: PrimeField> ShareConversion
+    for ahp::constraint_systems::MatrixEvals<MpcField<E, RSS3FieldShare>>
 {
     type Target = ahp::constraint_systems::MatrixEvals<<MpcPairingEngine<E, AdditiveFieldShare> as PairingEngine>>;
     struct_share_conversion_simp_impl!(ahp::constraint_systems::MatrixEvals; row, col, val);
 }
-impl<E: PrimeField, S: FieldShare<E>> ShareConversion
-    for ahp::constraint_systems::MatrixArithmetization<MpcField<E, S>>
+impl<E: PrimeField> ShareConversion
+    for ahp::constraint_systems::MatrixArithmetization<MpcField<E, RSS3FieldShare>>
 {
     type Target = ahp::constraint_systems::MatrixArithmetization<<MpcPairingEngine<E, AdditiveFieldShare> as PairingEngine>>;
     struct_share_conversion_simp_impl!(ahp::constraint_systems::MatrixArithmetization; row, col, val, row_col, evals_on_K, evals_on_B, row_col_evals_on_B);
 }
-impl<E: PairingEngine, S: PairingShare<E>> ShareConversion
+impl<E: PairingEngine> ShareConversion
     for IndexProverKey<
-        <MpcPairingEngine<E, S> as PairingEngine>::Fr,
+        <MpcPairingEngine<E, RSS3PairingShare> as PairingEngine>::Fr,
         MarlinKZG10<
             MpcPairingEngine<E, S>,
-            DensePolynomial<<MpcPairingEngine<E, S> as PairingEngine>::Fr>,
+            DensePolynomial<<MpcPairingEngine<E, RSS3PairingShare> as PairingEngine>::Fr>,
         >,
     >
 {

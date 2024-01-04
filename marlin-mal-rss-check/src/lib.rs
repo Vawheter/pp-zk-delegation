@@ -79,24 +79,6 @@ pub struct InterData<'a, F: PrimeField, PC: PolynomialCommitment<F, DensePolynom
     public_input: Vec<F>,
 }
 
-impl<'a, F: PrimeField, PC: PolynomialCommitment<F, DensePolynomial<F>>, D: Digest> InterData<'a, F, PC, D> 
-where F: ShareConversion 
-{
-    type target = AdditiveFieldShare;
-    fn convert_to_ass(self) -> Self {
-        let prover_first_msg = ProverMsg::EmptyMessage;
-        let prover_first_oracles_vec: Vec<LabeledPolynomial<Self::target>> = 
-            self.prover_first_oracles.iter().map(|label_poly| {
-                let coeffs = label_poly.polynomial().coeffs;
-                let ass_coeffs = coeffs.into_iter(|c| {
-                    c.convert_to_ass()
-                })
-            }).collect();
-        
-    }
-}
-
-
 /// The compiled argument system.
 pub struct Marlin<F: PrimeField, PC: PolynomialCommitment<F, DensePolynomial<F>>, D: Digest>(
     #[doc(hidden)] PhantomData<F>,

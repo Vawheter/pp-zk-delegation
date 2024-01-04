@@ -19,7 +19,13 @@ use std::marker::PhantomData;
 use std::ops::*;
 
 use super::super::share::group::GroupShare;
-use super::super::share::BeaverSource;
+use super::super::share::{
+    AdditiveGroupShare,
+    RSS3GroupShare,
+    BeaverSource,
+    ShareConversion,
+};
+use crate::msm::*;
 use super::field::MpcField;
 use mpc_net::{MpcNet, MpcMultiNet as Net};
 use crate::Reveal;
@@ -196,6 +202,18 @@ impl<T: Group, S: GroupShare<T>> Reveal for MpcGroup<T, S> {
     }
     fn deinit_protocol() {
         S::deinit_protocol()
+    }
+}
+
+impl<T: Group, M: Msm<T, T::ScalarField>> ShareConversion for MpcGroup<T, RSS3GroupShare<T, M>> {
+    type Target = MpcGroup<T, AdditiveGroupShare<T, M>>;
+    #[inline]
+    fn share_conversion(self) -> Self::Target {
+        let result = match self {
+            Self::Public(s) => Self::Target::Public(s), 
+            Self::Shared(s) => Self::Target::Shared(s.share_conversion()),
+        };
+        result
     }
 }
 

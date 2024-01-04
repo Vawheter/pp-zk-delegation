@@ -6,21 +6,39 @@ use rand::Rng;
 use crate::share::add::AdditiveFieldShare;
 
 
-pub trait ShareConversion {
+pub trait ShareConversion: Sized {
     // type Target = AdditiveFieldShare;
     type Target;
 
-    fn share_conversion(self) -> Self::Target;
+    fn share_conversion(self) -> Self::Target {
+        unimplemented!("only for converting to ass")
+    }
 }
 
 
-// impl<T: ShareConversion> ShareConversion for PhantomData<ShareConversion> {
-//     type Target = PhantomData<T::Target>;
+impl<T: ShareConversion> ShareConversion for PhantomData<T> {
+    type Target = PhantomData<T::Target>;
 
-//     fn share_conversion(self) -> Self::Target {
-//         PhantomData::default()
-//     }
-// }
+    fn share_conversion(self) -> Self::Target {
+        PhantomData::default()
+    }
+}
+
+impl ShareConversion for usize {
+    type Target = usize;
+
+    fn share_conversion(self) -> Self::Target {
+        self
+    }
+}
+
+impl<T: ShareConversion> ShareConversion for Option<T> {
+    type Target = Option<T::Target>;
+
+    fn share_conversion(self) -> Self::Target {
+        self.map(|x| x.share_conversion())
+    }
+}
 
 impl<T: ShareConversion> ShareConversion for Vec<T> {
     type Target = Vec<T::Target>;

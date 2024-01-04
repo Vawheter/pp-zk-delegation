@@ -169,7 +169,7 @@ impl<F: Field> FieldShare<F> for AdditiveFieldShare<F> {
 )]
 pub struct AdditiveGroupShare<T, M> {
     pub val: T,
-    _phants: PhantomData<M>,
+    pub(crate) _phants: PhantomData<M>,
 }
 
 impl<G: Group, M> Reveal for AdditiveGroupShare<G, M> {

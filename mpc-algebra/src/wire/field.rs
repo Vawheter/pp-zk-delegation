@@ -24,12 +24,18 @@ use crate::Reveal;
 use mpc_net::{MpcNet, MpcMultiNet as Net};
 use ark_std::test_rng;
 use crate::share::{
+    RSS3FieldShare,
     AdditiveFieldShare,
     ShareConversion,
 };
 
 #[derive(Clone, Copy, Hash, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub enum MpcField<F: Field, S: FieldShare<F> + ShareConversion<Target = AdditiveFieldShare<F>>> {
+// pub enum MpcField<F: Field, S: FieldShare<F> + ShareConversion<Target = AdditiveFieldShare<F>>> {
+//     Public(F),
+//     Shared(S),
+// }
+
+pub enum MpcField<F: Field, S: FieldShare<F>> {
     Public(F),
     Shared(S),
 }
@@ -349,7 +355,10 @@ impl<T: Field, S: FieldShare<T>> Reveal for MpcField<T, S> {
 }
 
 
-impl<T: Field, S: FieldShare<T> + ShareConversion<Target = AdditiveFieldShare<T>>> ShareConversion for MpcField<T, S> {
+// impl<T: Field, S: FieldShare<T> + ShareConversion<Target = AdditiveFieldShare<T>>> ShareConversion for MpcField<T, S> {
+//     type Target = MpcField<T, AdditiveFieldShare<T>>;
+
+impl<T: Field> ShareConversion for MpcField<T, RSS3FieldShare<T>> {
     type Target = MpcField<T, AdditiveFieldShare<T>>;
     #[inline]
     fn share_conversion(self) -> Self::Target {
@@ -659,7 +668,7 @@ mod poly_impl {
         }
     }
 
-    impl<F: PrimeField, S: FieldShare<F>> ShareConversion for DensePolynomial<MpcField<F, S>> {
+    impl<F: PrimeField> ShareConversion for DensePolynomial<MpcField<F, RSS3FieldShare<F>>> {
         type Target = DensePolynomial<MpcField<F, AdditiveFieldShare<F>>>;
         
         struct_share_conversion_simp_impl!(DensePolynomial; coeffs);

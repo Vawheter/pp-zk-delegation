@@ -30,7 +30,10 @@ use crate::share::pairing::{AffProjShare, PairingShare};
 use crate::share::BeaverSource;
 use crate::msm::*;
 use crate::Reveal;
-use crate::share::AdditiveFieldShare;
+use crate::share::{
+    AdditiveFieldShare,
+    AdditiveGroupShare,
+};
 use crate::share::{ 
     ShareConversion,
 };
@@ -331,6 +334,21 @@ pub struct RSS3GroupShare<T, M> {
 impl<G: Group, M> RSS3GroupShare<G, M> {
     fn default() -> Self {
         Self { val0: G::zero(), val1: G::zero(), _phants: PhantomData::default() }
+    }
+}
+
+
+impl<G: Group, M> ShareConversion for RSS3GroupShare<G, M> {
+    type Target = AdditiveGroupShare<G, M>;
+
+    fn share_conversion(self) -> Self::Target {
+        // let pre_id = (dealer_id + 2) % 3;
+        // let next_id = (dealer_id + 1) % 3;
+        match Net::party_id() {
+            0 => AdditiveGroupShare { val: self.val0 + self.val1, _phants: PhantomData::default() },
+            1 => AdditiveGroupShare { val: self.val1, _phants: PhantomData::default() },
+            _ => AdditiveGroupShare { val: G::zero(), _phants: PhantomData::default() },
+        }
     }
 }
 

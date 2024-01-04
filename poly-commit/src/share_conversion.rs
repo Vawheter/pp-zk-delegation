@@ -1,58 +1,48 @@
 #![allow(missing_docs)]
 use ark_ec::PairingEngine;
-use ark_ff::{Field, PrimeField};
+use ark_ff::PrimeField;
 use ark_poly::univariate::DensePolynomial;
-use mpc_trait::{struct_mpc_wire_simp_impl, MpcWire};
 use mpc_algebra::*;
-
-use std::rc::Rc;
 
 use crate::{kzg10, marlin_pc, BatchLCProof, LabeledCommitment, LabeledPolynomial, PCCommitment};
 use marlin_pc::*;
 
-impl<E: PairingEngine, S: PairingShare<E>> ShareConversion for Commitment<MpcPairingEngine<E, S>> {
-    type Target = Commitment<E>;
+impl<E: PairingEngine> ShareConversion for Commitment<MpcPairingEngine<E, RSS3PairingShare<E>>> {
+    type Target = Commitment<MpcPairingEngine<E, AdditivePairingShare<E>>>;
     struct_share_conversion_simp_impl!(Commitment; comm, shifted_comm);
 }
 
-impl<E: PrimeField, S: FieldShare<E>> ShareConversion
-    for kzg10::Randomness<MpcField<E, S>, DensePolynomial<MpcField<E, S>>>
+impl<E: PrimeField> ShareConversion
+    for kzg10::Randomness<MpcField<E, RSS3FieldShare<E>>, DensePolynomial<MpcField<E, RSS3FieldShare<E>>>>
 {
-    type Target = kzg10::Randomness<E, DensePolynomial<E>>;
+    type Target = kzg10::Randomness<MpcField<E, AdditiveFieldShare<E>>, DensePolynomial<MpcField<E, AdditiveFieldShare<E>>>>;
+
     struct_share_conversion_simp_impl!(kzg10::Randomness; blinding_polynomial, _field);
 }
 
-impl<E: PrimeField, S: FieldShare<E>> ShareConversion
-    for Randomness<MpcField<E, S>, DensePolynomial<MpcField<E, S>>>
+impl<E: PrimeField> ShareConversion
+    for Randomness<MpcField<E, RSS3FieldShare<E>>, DensePolynomial<MpcField<E, RSS3FieldShare<E>>>>
 {
-    type Target = Randomness<E, DensePolynomial<E>>;
+    type Target = Randomness<MpcField<E, AdditiveFieldShare<E>>, DensePolynomial<MpcField<E, AdditiveFieldShare<E>>>>;
     struct_share_conversion_simp_impl!(Randomness; rand, shifted_rand);
 }
 
-impl<E: PairingEngine, S: PairingShare<E>> ShareConversion for kzg10::Commitment<MpcPairingEngine<E, S>> {
-    type Target = kzg10::Commitment<E>;
+impl<E: PairingEngine> ShareConversion for kzg10::Commitment<MpcPairingEngine<E, RSS3PairingShare<E>>> {
+    type Target = kzg10::Commitment<MpcPairingEngine<E, AdditivePairingShare<E>>>;
 
-    fn reveal(self) -> Self::Target {
-        kzg10::Commitment(self.0.reveal())
-    }
-
-    fn from_add_shared(b: Self::Target) -> Self {
-        kzg10::Commitment(<MpcPairingEngine<E, S> as PairingEngine>::G1Affine::from_add_shared(b.0))
-    }
-
-    fn from_public(b: Self::Target) -> Self {
-        kzg10::Commitment(<MpcPairingEngine<E, S> as PairingEngine>::G1Affine::from_public(b.0))
+    fn share_conversion(self) -> Self::Target {
+        kzg10::Commitment(self.0.share_conversion())
     }
 }
 
-impl<E: PairingEngine, S: PairingShare<E>> ShareConversion for kzg10::Proof<MpcPairingEngine<E, S>> {
-    type Target = kzg10::Proof<E>;
+impl<E: PairingEngine> ShareConversion for kzg10::Proof<MpcPairingEngine<E, RSS3PairingShare<E>>> {
+    type Target = kzg10::Proof<MpcPairingEngine<E, AdditivePairingShare<E>>>;
     struct_share_conversion_simp_impl!(kzg10::Proof; w, random_v);
 }
-impl<E: PairingEngine, S: PairingShare<E>> ShareConversion
-    for kzg10::UniversalParams<MpcPairingEngine<E, S>>
+impl<E: PairingEngine> ShareConversion
+    for kzg10::UniversalParams<MpcPairingEngine<E, RSS3PairingShare<E>>>
 {
-    type Target = kzg10::UniversalParams<E>;
+    type Target = kzg10::UniversalParams<MpcPairingEngine<E, AdditivePairingShare<E>>>;
     struct_share_conversion_simp_impl!(kzg10::UniversalParams;
     powers_of_g,
     powers_of_gamma_g,
@@ -63,8 +53,8 @@ impl<E: PairingEngine, S: PairingShare<E>> ShareConversion
     prepared_beta_h);
 }
 
-impl<E: PairingEngine, S: PairingShare<E>> ShareConversion for kzg10::VerifierKey<MpcPairingEngine<E, S>> {
-    type Target = kzg10::VerifierKey<E>;
+impl<E: PairingEngine> ShareConversion for kzg10::VerifierKey<MpcPairingEngine<E, RSS3PairingShare<E>>> {
+    type Target = kzg10::VerifierKey<MpcPairingEngine<E, AdditivePairingShare<E>>>;
     struct_share_conversion_simp_impl!(kzg10::VerifierKey;
     g,
     gamma_g,
@@ -74,34 +64,34 @@ impl<E: PairingEngine, S: PairingShare<E>> ShareConversion for kzg10::VerifierKe
     prepared_beta_h
     );
 }
-impl<E: PairingEngine, S: PairingShare<E>> ShareConversion for VerifierKey<MpcPairingEngine<E, S>> {
-    type Target = VerifierKey<E>;
+impl<E: PairingEngine> ShareConversion for VerifierKey<MpcPairingEngine<E, RSS3PairingShare<E>>> {
+    type Target = VerifierKey<MpcPairingEngine<E, AdditivePairingShare<E>>>;
     struct_share_conversion_simp_impl!(VerifierKey;
          vk,
          degree_bounds_and_shift_powers,
          max_degree,
          supported_degree);
 }
-impl<E: PairingEngine, S: PairingShare<E>> ShareConversion
+impl<E: PairingEngine> ShareConversion
     for BatchLCProof<
-        <MpcPairingEngine<E, S> as PairingEngine>::Fr,
-        DensePolynomial<<MpcPairingEngine<E, S> as PairingEngine>::Fr>,
+        <MpcPairingEngine<E, RSS3PairingShare<E>> as PairingEngine>::Fr,
+        DensePolynomial<<MpcPairingEngine<E, RSS3PairingShare<E>> as PairingEngine>::Fr>,
         MarlinKZG10<
-            MpcPairingEngine<E, S>,
-            DensePolynomial<<MpcPairingEngine<E, S> as PairingEngine>::Fr>,
+            MpcPairingEngine<E, RSS3PairingShare<E>>,
+            DensePolynomial<<MpcPairingEngine<E, RSS3PairingShare<E>> as PairingEngine>::Fr>,
         >,
     >
 {
     type Target = BatchLCProof<
-        <E as PairingEngine>::Fr,
-        DensePolynomial<<E as PairingEngine>::Fr>,
-        MarlinKZG10<E, DensePolynomial<<E as PairingEngine>::Fr>>,
+        <MpcPairingEngine<E, AdditivePairingShare<E>> as PairingEngine>::Fr,
+        DensePolynomial<<MpcPairingEngine<E, AdditivePairingShare<E>> as PairingEngine>::Fr>,
+        MarlinKZG10<MpcPairingEngine<E, AdditivePairingShare<E>>, DensePolynomial<<MpcPairingEngine<E, AdditivePairingShare<E>> as PairingEngine>::Fr>>,
     >;
     struct_share_conversion_simp_impl!(BatchLCProof; proof, evals);
 }
 
-impl<E: PairingEngine, S: PairingShare<E>> ShareConversion for CommitterKey<MpcPairingEngine<E, S>> {
-    type Target = CommitterKey<E>;
+impl<E: PairingEngine> ShareConversion for CommitterKey<MpcPairingEngine<E, RSS3PairingShare<E>>> {
+    type Target = CommitterKey<MpcPairingEngine<E, AdditivePairingShare<E>>>;
     struct_share_conversion_simp_impl!(CommitterKey; powers, shifted_powers, powers_of_gamma_g, enforced_degree_bounds, max_degree);
 }
 
@@ -110,82 +100,26 @@ where
     C::Target: PCCommitment,
 {
     type Target = LabeledCommitment<C::Target>;
-    fn reveal(self) -> Self::Target {
+
+    fn share_conversion(self) -> Self::Target {
         LabeledCommitment::new(
             self.label().clone(),
-            self.commitment.clone().reveal(),
+            self.commitment.clone().share_conversion(),
             self.degree_bound(),
-        )
-    }
-
-    fn from_add_shared(b: Self::Target) -> Self {
-        LabeledCommitment::new(
-            b.label().clone(),
-            ShareConversion::from_add_shared(b.commitment.clone()),
-            b.degree_bound(),
-        )
-    }
-
-    fn from_public(b: Self::Target) -> Self {
-        LabeledCommitment::new(
-            b.label().clone(),
-            ShareConversion::from_public(b.commitment.clone()),
-            b.degree_bound(),
         )
     }
 }
 
-impl<F: PrimeField, S: FieldShare<F>> ShareConversion
-    for LabeledPolynomial<MpcField<F, S>, DensePolynomial<MpcField<F, S>>>
+impl<F: PrimeField> ShareConversion
+    for LabeledPolynomial<MpcField<F, RSS3FieldShare<F>>, DensePolynomial<MpcField<F, RSS3FieldShare<F>>>>
 {
-    type Target = LabeledPolynomial<F, DensePolynomial<F>>;
-    fn reveal(self) -> Self::Target {
+    type Target = LabeledPolynomial<MpcField<F, AdditiveFieldShare<F>>, DensePolynomial<MpcField<F, AdditiveFieldShare<F>>>>;
+    fn share_conversion(self) -> Self::Target {
         LabeledPolynomial::new(
             self.label().clone(),
-            self.polynomial().clone().reveal(),
+            self.polynomial().clone().share_conversion(),
             self.degree_bound(),
             self.hiding_bound(),
         )
     }
-
-    fn from_add_shared(b: Self::Target) -> Self {
-        LabeledPolynomial::new(
-            b.label().clone(),
-            ShareConversion::from_add_shared(b.polynomial().clone()),
-            b.degree_bound(),
-            b.hiding_bound(),
-        )
-    }
-
-    fn from_public(b: Self::Target) -> Self {
-        LabeledPolynomial::new(
-            b.label().clone(),
-            ShareConversion::from_public(b.polynomial().clone()),
-            b.degree_bound(),
-            b.hiding_bound(),
-        )
-    }
-}
-
-impl<E: Field> MpcWire for LabeledPolynomial<E, DensePolynomial<E>> {
-    fn publicize(&mut self) {
-        let mut p = (*self.polynomial).clone();
-        p.publicize();
-        self.polynomial = Rc::new(p);
-    }
-    fn is_shared(&self) -> bool {
-        self.polynomial.is_shared()
-    }
-}
-
-impl<C: PCCommitment + MpcWire> MpcWire for LabeledCommitment<C> {
-    struct_mpc_wire_simp_impl!(LabeledCommitment; commitment);
-}
-
-impl<C: PairingEngine> MpcWire for Commitment<C> {
-    struct_mpc_wire_simp_impl!(Commitment; comm, shifted_comm);
-}
-
-impl<C: PairingEngine> MpcWire for kzg10::Commitment<C> {
-    struct_mpc_wire_simp_impl!(kzg10::Commitment; 0);
 }

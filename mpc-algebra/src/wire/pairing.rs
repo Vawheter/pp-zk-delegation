@@ -26,9 +26,19 @@ use super::super::share::field::ExtFieldShare;
 use super::super::share::group::GroupShare;
 use super::super::share::pairing::{AffProjShare, PairingShare};
 use super::super::share::BeaverSource;
+use super::super::share::{
+    AdditiveGroupShare,
+    RSS3GroupShare,
+};
+use crate::{
+    RSS3PairingShare,
+    AdditivePairingShare,
+};
+
 use super::field::MpcField;
 use super::group::MpcGroup;
 use crate::Reveal;
+use crate::ShareConversion;
 
 use log::debug;
 
@@ -76,6 +86,17 @@ pub struct MpcG1Affine<E: PairingEngine, PS: PairingShare<E>> {
     pub val: MpcGroup<E::G1Affine, PS::G1AffineShare>,
 }
 
+
+impl<E: PairingEngine> ShareConversion for MpcG1Affine<E, RSS3PairingShare<E>> {
+    type Target = MpcG1Affine<E, AdditivePairingShare<E>>;
+
+    fn share_conversion(self) -> Self::Target {
+        Self::Target {
+            val: self.val.share_conversion()
+        }
+    }
+}
+
 #[derive(Debug, Derivative)]
 #[derivative(
     Clone(bound = ""),
@@ -107,6 +128,16 @@ pub struct MpcG2Affine<E: PairingEngine, PS: PairingShare<E>> {
     pub val: MpcGroup<E::G2Affine, PS::G2AffineShare>,
 }
 
+impl<E: PairingEngine> ShareConversion for MpcG2Affine<E, RSS3PairingShare<E>> {
+    type Target = MpcG2Affine<E, AdditivePairingShare<E>>;
+
+    fn share_conversion(self) -> Self::Target {
+        Self::Target {
+            val: self.val.share_conversion()
+        }
+    }
+}
+
 #[derive(Debug, Derivative)]
 #[derivative(
     Clone(bound = ""),
@@ -124,6 +155,17 @@ pub struct MpcG2Projective<E: PairingEngine, PS: PairingShare<E>> {
 pub struct MpcG2Prep<E: PairingEngine, PS: PairingShare<E>> {
     pub val: E::G2Prepared,
     pub _phants: PhantomData<(E, PS)>,
+}
+
+impl<E: PairingEngine> ShareConversion for MpcG2Prep<E, RSS3PairingShare<E>> {
+    type Target = MpcG2Prep<E, AdditivePairingShare<E>>;
+
+    fn share_conversion(self) -> Self::Target {
+        Self::Target {
+            val: self.val,
+            _phants: PhantomData::<(E, AdditivePairingShare::<E>)>,
+        }
+    }
 }
 
 #[derive(Derivative)]

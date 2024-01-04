@@ -12,6 +12,7 @@ use std::hash::Hash;
 use log::debug;
 use super::BeaverSource;
 use crate::Reveal;
+use crate::share::ShareConversion;
 
 pub trait FieldShare<F: Field>:
     Clone
